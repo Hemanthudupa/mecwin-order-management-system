@@ -116,9 +116,23 @@ export async function addUserRole(roles: userRole) {
   }
 }
 
-export async function getAllUserRoles() {
+export async function getAllUserRoles(options: string) {
   try {
-    return await UserRole.findAll();
+    const where: any = {};
+    if (options) {
+      options = options.toUpperCase();
+      if (Object.values(USER_ROLES).includes(options)) {
+        where["userRole"] = options;
+      } else {
+        throw new APIError(
+          ` options should contains valid user roles  ${options}`,
+          " INVALID USER ROLE "
+        );
+      }
+    }
+    return await UserRole.findAll({
+      where,
+    });
   } catch (error) {
     throw new APIError((error as APIError).message, (error as APIError).code);
   }
@@ -277,7 +291,10 @@ export async function createUser(data: any, transaction: Transaction) {
       },
     });
     if (!userRole) {
-      throw new APIError(" invalid user role ", " INVALID ROLE ");
+      throw new APIError(
+        " invalid user role in request body ",
+        " INVALID ROLE "
+      );
     }
 
     const dataFromDb = await User.findOne({

@@ -2,6 +2,8 @@ export const USER_ROLES = {
   consumer: "CONSUMER",
   admin: "ADMIN",
   distributor: "DISTRIBUTOR",
+  manager: "MANAGER",
+  executive: "EXECUTIVE",
 };
 export const PRODUCTS_CATEGOARY = {
   ac_motor: "AC_MOTOR",

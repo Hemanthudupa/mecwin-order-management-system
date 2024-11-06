@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import { User } from "../user/model";
 import csv from "csvtojson";
 import { compare, hash } from "bcrypt";
@@ -128,6 +128,12 @@ export async function ensureUser(
   next: NextFunction
 ) {
   try {
+    if (req.url == "/admin/add-user-role") {
+      next();
+      console.log(req.url);
+      console.log("inside the url verificatio n");
+      return;
+    }
     if (!req.headers.authorization) {
       throw new APIError("JWT token required ");
     }
@@ -136,14 +142,15 @@ export async function ensureUser(
       throw new APIError("invalid JWT token ");
     }
     const payload: any = verify(token, process.env.JWT_SECRET_KEY!);
-
-    const { userRole }: any = await UserRole.findOne({
+    console.log(payload.userRole);
+    const user = await UserRole.findOne({
       where: {
         id: payload.userRole,
       },
       attributes: ["userRole"],
     });
-    payload.userRole = userRole;
+
+    payload.userRole = user!.userRole;
     (req as any).user = payload;
     next();
   } catch (error) {
@@ -217,6 +224,27 @@ export async function ensureSalesExecutive(
     }
     (req as any).user.salesExcecutiveId = salesExcecutive.id;
     next();
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function ensureSalesManager(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const user: any = (req as any).user;
+    const manager = await Manager.findOne({
+      where: {
+        userId: user.id,
+      },
+    });
+
+    if (manager) {
+      next();
+    }
   } catch (error) {
     next(error);
   }

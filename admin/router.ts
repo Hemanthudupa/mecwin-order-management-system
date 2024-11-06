@@ -33,7 +33,8 @@ app.get(
   "/get-all-user-roles",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      res.status(StatusCodes.OK).send(await getAllUserRoles());
+      const { options } = req.query;
+      res.status(StatusCodes.OK).send(await getAllUserRoles(options as string));
     } catch (error) {
       next(error);
     }
