@@ -31,7 +31,7 @@ export async function login(
 
     const where: any = {};
     if (email) {
-      where["emailId"] = email;
+      where["email"] = email;
     }
     if (phoneNumber) {
       where["phoneNumber"] = phoneNumber;

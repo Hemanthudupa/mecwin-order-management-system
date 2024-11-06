@@ -67,3 +67,18 @@ export const validateDistributor = Joi.object({
     "required.any": "attachments should be valid",
   }),
 });
+
+export const orderDetails = Joi.object({
+  shipping_Address: Joi.string().optional().messages({
+    "string.base": "shippingAddress should be an valid string ",
+    "required.any": "shippingAddress should be valid ",
+  }),
+  billing_Address: Joi.string().optional().messages({
+    "string.base": "billingAddress should be an valid string ",
+    "required.any": "billingAddress should be valid ",
+  }),
+  remarks: Joi.string().optional().messages({
+    "string.base": "remarks should be an valid string ",
+    "required.any": "remarks should be valid ",
+  }),
+});

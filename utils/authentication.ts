@@ -51,7 +51,6 @@ export async function runSeedUsers() {
             },
             attributes: ["id"],
           });
-
           if (!userRole) {
             throw new APIError(
               "user role is not valid ",
@@ -117,9 +116,11 @@ export function generateJWTToken(user: User) {
   }
 }
 import { NextFunction, Request, Response } from "express";
-import { USER_ROLES } from "./constants";
+import { MANAGERS_ROLES, USER_ROLES } from "./constants";
 import { UserRole } from "../roles/model";
 import { Distributor } from "../distributor/model";
+import { Manager } from "../managers/model";
+import { Executive } from "../executives/model";
 
 export async function ensureUser(
   req: Request,
@@ -175,8 +176,9 @@ export async function ensureDistributor(
 ) {
   try {
     const { userRole, id } = (req as any).user;
-    if (userRole.toUpperCase() == "DISTRIBUTOR") {
+    if (userRole.toUpperCase() == "DISTRIBUTOR" && id) {
       const dist = await Distributor.findOne({ where: { userId: id } });
+
       (req as any).user.distributorId = dist!.id;
       next();
     } else {
@@ -185,6 +187,36 @@ export async function ensureDistributor(
         " INVALID ROLE "
       );
     }
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function ensureSalesExecutive(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const user = (req as any).user;
+
+    const managers = await Manager.findAll({
+      where: {
+        department: MANAGERS_ROLES.sales,
+      },
+      attributes: ["id"],
+    });
+    const salesExcecutive = await Executive.findOne({
+      where: {
+        userId: user.id,
+        managerId: { [Op.in]: managers },
+      },
+    });
+    if (!salesExcecutive) {
+      throw new APIError("invlaid sales excecutive ", " INVALID ID ");
+    }
+    (req as any).user.salesExcecutiveId = salesExcecutive.id;
+    next();
   } catch (error) {
     next(error);
   }

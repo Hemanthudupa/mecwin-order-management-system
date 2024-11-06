@@ -29,7 +29,6 @@ export class Order extends Model<
   declare reason: CreationOptional<string>;
   declare discount: CreationOptional<number>;
   declare remarks: CreationOptional<string>;
-  declare salesExecutive: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -80,13 +79,6 @@ Order.init(
     },
     remarks: {
       type: STRING,
-    },
-    salesExecutive: {
-      type: UUID,
-      references: {
-        model: Executive,
-        key: "id",
-      },
     },
   },
   {

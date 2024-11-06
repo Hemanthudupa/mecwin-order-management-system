@@ -6,7 +6,11 @@ import {
   addProductImages,
   addUserRole,
   createDistributor,
+  createManager,
   getAllProducts,
+  getAllProductsCategoray,
+  getAllUserRoles,
+  removeProductImage,
 } from "./module";
 import { ensureAdmin } from "../utils/authentication";
 import { fileMulter } from "../utils/files/distributor_attachments/attachments";
@@ -19,6 +23,17 @@ app.post(
     try {
       const role = req.body;
       res.status(StatusCodes.CREATED).send(await addUserRole(role));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.get(
+  "/get-all-user-roles",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.status(StatusCodes.OK).send(await getAllUserRoles());
     } catch (error) {
       next(error);
     }
@@ -78,7 +93,7 @@ app.get(
   "/get-all-products",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      res.status(StatusCodes.OK).send(await getAllProducts());
+      res.status(StatusCodes.OK).json(await getAllProducts());
     } catch (error) {
       next(error);
     }
@@ -107,12 +122,59 @@ app.post(
   }
 );
 
+// app.get(
+//   "/get-all-product-images/:id",
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//       const { id } = req.params;
+//       res.status(StatusCodes.OK).json(await getAllProductImages(id));
+//     } catch (error) {
+//       next(error);
+//     }
+//   }
+// );
+
+app.put(
+  "/remove-product-image/:id",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      res.status(StatusCodes.OK).send(await removeProductImage(id));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 app.post(
   "/add-product-categoary",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const details = req.body;
       res.status(StatusCodes.CREATED).send(await addProductCategoary(details));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.get(
+  "/get-all-products-categoary",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.status(StatusCodes.OK).send(await getAllProductsCategoray());
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.post(
+  "/add-manager",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = req.body;
+      res.status(StatusCodes.CREATED).send(await createManager(data));
     } catch (error) {
       next(error);
     }

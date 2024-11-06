@@ -5,6 +5,7 @@ import { APIError } from "./utils/Error";
 import { StatusCodes } from "http-status-codes";
 import { ensureUser } from "./utils/authentication";
 import admin from "./admin/router";
+import distributor from "./distributor/router";
 // import morgan from "morgan";
 // app.use(morgan("dev"));
 app.use((req, res, next) => {
@@ -23,6 +24,7 @@ app.use("/user", user);
 app.use(ensureUser);
 
 app.use("/admin", admin);
+app.use("/distributor", distributor);
 
 app.use(errorHandler);
 function errorHandler(

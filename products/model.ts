@@ -8,6 +8,7 @@ import {
   InferCreationAttributes,
   Model,
   STRING,
+  TEXT,
   UUID,
   UUIDV4,
 } from "sequelize";
@@ -25,6 +26,7 @@ export class Product extends Model<
   declare price: CreationOptional<number>;
   declare gst: CreationOptional<number>;
   declare discount: CreationOptional<number>;
+  declare product_image: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -41,6 +43,10 @@ Product.init(
         model: Product_Categoary,
         key: "id",
       },
+    },
+
+    product_image: {
+      type: TEXT,
     },
     details: {
       type: STRING,

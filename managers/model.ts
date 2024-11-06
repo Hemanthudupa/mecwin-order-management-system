@@ -21,6 +21,7 @@ export class Manager extends Model<
   declare employeeId: CreationOptional<string>;
   declare work_locations: CreationOptional<string[]>;
   declare userName: CreationOptional<string>;
+  declare department: CreationOptional<string>;
   declare userId: ForeignKey<User>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
@@ -49,6 +50,9 @@ Manager.init(
       type: ARRAY(STRING),
     },
     userName: {
+      type: STRING,
+    },
+    department: {
       type: STRING,
     },
     createdAt: {

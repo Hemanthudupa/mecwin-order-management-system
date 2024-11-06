@@ -70,3 +70,8 @@ User.init(
     sequelize: sequelize,
   }
 );
+
+User.belongsTo(UserRole, {
+  foreignKey: "userRole",
+  as: "roleId",
+});
