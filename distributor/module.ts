@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import { Cart } from "../cart/model";
 import sequelize from "../database";
 import { Order } from "../order/model";
@@ -122,11 +123,29 @@ export async function placeCartOrders(
       return orderTemp;
     });
 
-    await Order.bulkCreate(orders, { transaction });
+    const createdOrders = await Order.bulkCreate(orders, { transaction });
 
-    return {
-      message: " successfully created order ",
-    };
+    const deletedCart = await Cart.destroy({
+      where: {
+        id: { [Op.in]: cart.map((ele) => ele.id) },
+      },
+    });
+
+    if (deletedCart) {
+      console.log("cart deleted successfully ");
+    }
+    await transaction.commit();
+
+    if (createdOrders.length > 0) {
+      return {
+        message: " successfully created order ",
+        createdOrders,
+      };
+    } else {
+      return {
+        message: "   order not created  because orders are 0 ",
+      };
+    }
   } catch (error) {
     transaction.rollback();
     throw new APIError((error as APIError).message, (error as APIError).code);

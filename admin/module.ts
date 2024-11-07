@@ -161,6 +161,16 @@ export async function addProductDetails(product_details: any) {
       product_details
     );
 
+    const prodCat = await Product_Categoary.findOne({
+      where: {
+        id: validatedDetails.product_categoary,
+      },
+    });
+
+    if (!prodCat) {
+      throw new APIError(" invlaid product categoary ", " INVALID ID ");
+    }
+
     const product = await Product.create(validatedDetails);
     return {
       message: " product added successfully ",

@@ -6,8 +6,14 @@ import { StatusCodes } from "http-status-codes";
 import { ensureUser } from "./utils/authentication";
 import admin from "./admin/router";
 import distributor from "./distributor/router";
+import manager from "./managers/router";
+import swaggerUi from "swagger-ui-express";
+import yaml from "yamljs";
 // import morgan from "morgan";
 // app.use(morgan("dev"));
+
+const swaggerDocument = yaml.load("./utils/swagger.yaml");
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use((req, res, next) => {
   req.on("end", () => {
     console.log(`Request: ${req.method} ${req.url}`);
@@ -25,6 +31,7 @@ app.use(ensureUser);
 
 app.use("/admin", admin);
 app.use("/distributor", distributor);
+app.use("/manager", manager);
 
 app.use(errorHandler);
 function errorHandler(

@@ -11,8 +11,6 @@ import {
 import { APIError } from "../utils/Error";
 import { User } from "./model";
 import { loginValidation } from "./validation";
-import { USER_ROLES } from "../utils/constants";
-import sequelize from "../database";
 import { UserRole } from "../roles/model";
 
 export async function login(

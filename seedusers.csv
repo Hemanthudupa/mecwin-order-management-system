@@ -1,3 +1,2 @@
 userName,phoneNumber,email,password,isActive,userRole
 A123,1234567890,a12@gmail.com,12345678,true,ADMIN
-B123,1233455677,b12@gmail.com,12345678,true,DISTRIBUTOR

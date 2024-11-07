@@ -30,6 +30,7 @@ route.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { distributorId } = (req as any).user;
+      console.log(distributorId, " is the dist id ");
       res.status(StatusCodes.OK).send(await getAllCartProducts(distributorId));
     } catch (error) {
       next(error);

@@ -130,10 +130,9 @@ export async function ensureUser(
   try {
     if (req.url == "/admin/add-user-role") {
       next();
-      console.log(req.url);
-      console.log("inside the url verificatio n");
       return;
     }
+
     if (!req.headers.authorization) {
       throw new APIError("JWT token required ");
     }
@@ -149,10 +148,17 @@ export async function ensureUser(
       },
       attributes: ["userRole"],
     });
+    if (!user) {
+      throw new APIError(
+        " invlaid JWT token , JWT token is from invlaid user ",
+        " USER DOESNOT NOT EXIST!!!"
+      );
+    }
 
     payload.userRole = user!.userRole;
     (req as any).user = payload;
     next();
+    return;
   } catch (error) {
     next(error);
   }
@@ -182,9 +188,17 @@ export async function ensureDistributor(
   next: NextFunction
 ) {
   try {
+    console.log((req as any).user);
     const { userRole, id } = (req as any).user;
     if (userRole.toUpperCase() == "DISTRIBUTOR" && id) {
       const dist = await Distributor.findOne({ where: { userId: id } });
+
+      if (!dist) {
+        throw new APIError(
+          " invalid distributor  ID --- Distributor not registerd maybe  ,  ",
+          " INVLAID DISTRIBUTOR ID "
+        );
+      }
 
       (req as any).user.distributorId = dist!.id;
       next();
@@ -236,6 +250,7 @@ export async function ensureSalesManager(
 ) {
   try {
     const user: any = (req as any).user;
+
     const manager = await Manager.findOne({
       where: {
         userId: user.id,
@@ -243,7 +258,13 @@ export async function ensureSalesManager(
     });
 
     if (manager) {
+      (req as any).user.managerId = manager.id;
       next();
+    } else {
+      throw new APIError(
+        " only manager can perform this action ",
+        " INVALID USER ROLE "
+      );
     }
   } catch (error) {
     next(error);

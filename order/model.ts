@@ -88,3 +88,12 @@ Order.init(
     timestamps: true,
   }
 );
+
+Order.belongsTo(Distributor, {
+  foreignKey: "customerId",
+  as: "customers",
+});
+Order.belongsTo(Product, {
+  foreignKey: "productId",
+  as: "products",
+});
