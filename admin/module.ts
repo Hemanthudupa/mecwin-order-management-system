@@ -12,6 +12,7 @@ import { USER_ROLES } from "../utils/constants";
 import { APIError } from "../utils/Error";
 import { readFileSync, unlink } from "fs";
 import {
+  createExecutiveValidation,
   createManagerValidation,
   createUserDetails,
   validation_Product_Categoary,
@@ -19,6 +20,7 @@ import {
   validation_User_Role,
 } from "./validation";
 import { Manager } from "../managers/model";
+import { Executive } from "../executives/model";
 
 export async function createDistributor(data: distributor) {
   const transaction = await sequelize.transaction();
@@ -87,7 +89,7 @@ export async function createDistributor(data: distributor) {
       message: "distributor created successfully ",
     };
   } catch (error) {
-    transaction.rollback();
+    await transaction.rollback();
     throw new APIError((error as APIError).message, (error as APIError).code);
   }
 }
@@ -286,7 +288,7 @@ export async function createManager(data: any) {
     await transaction.commit();
     return { message: " successfully manager created " };
   } catch (error) {
-    transaction.rollback();
+    await transaction.rollback();
     throw new APIError((error as APIError).message, (error as APIError).code);
   }
 }
@@ -327,6 +329,162 @@ export async function createUser(data: any, transaction: Transaction) {
     }
     const user = await User.create(userData, { transaction });
     return { message: " user created successfully ", user };
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function getAllManagers(options: string) {
+  try {
+    const where: any = {};
+    if (options) {
+      options = options.toUpperCase();
+      where.department = options;
+    }
+    const managers = await Manager.findAll({
+      where,
+
+      include: {
+        model: User,
+        as: "user",
+        where: {
+          isActive: true,
+        },
+      },
+    });
+    return managers;
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function deleteManagerByID(id: string) {
+  try {
+    const manager: any = await Manager.findOne({
+      where: { id },
+      include: {
+        model: User,
+        as: "user",
+        where: { isActive: true },
+      },
+    });
+    if (!manager) {
+      throw new APIError(
+        " invlaid manager id or manager already deleted  ",
+        "INVALID ID "
+      );
+    }
+    manager.user.isActive = false;
+    await manager.user.save();
+    return { message: " manager successfully deleted " };
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function addSalesExecutives(body: any) {
+  const transaction = await sequelize.transaction();
+  try {
+    const validatedExecutive = await createExecutiveValidation.validateAsync(
+      body
+    );
+    const user = {
+      userName: validatedExecutive.userName,
+      phoneNumber: validatedExecutive.userName,
+      email: validatedExecutive.email,
+      userRole: validatedExecutive.userRole,
+      password: await hashPassword(validatedExecutive.password),
+    };
+
+    const foundEmail = await User.findOne({
+      where: {
+        [Op.or]: [
+          {
+            phoneNumber: validatedExecutive.phoneNumber,
+          },
+          {
+            email: validatedExecutive.email,
+          },
+        ],
+      },
+    });
+
+    if (foundEmail) {
+      throw new APIError(
+        " dupliate email or phone number ",
+        " DUPLICATE PROPERTIES "
+      );
+    }
+    const userDetails: any = await User.create(user, { transaction });
+
+    const sales = {
+      employeeId: validatedExecutive.employeeId,
+      location: validatedExecutive.location,
+      managerId: validatedExecutive.managerId,
+      userName: validatedExecutive.userName,
+      userId: userDetails.id,
+    };
+
+    await Executive.create(sales, { transaction });
+    await transaction.commit();
+    return {
+      message: " sales executive added successfully ",
+    };
+  } catch (error) {
+    await transaction.rollback();
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function getAllSalesExecutives(options: string) {
+  try {
+    const where: any = {};
+    if (options) {
+      options = options.toUpperCase();
+      where.department = options;
+    }
+
+    return await Executive.findAll({
+      include: [
+        {
+          model: User,
+          as: "user",
+          where: {
+            isActive: true,
+          },
+        },
+        {
+          model: Manager,
+          as: "manager",
+          where,
+        },
+      ],
+    });
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function deleteServiceExecutive(id: string) {
+  try {
+    const executive: any = await Executive.findOne({
+      where: { id },
+      include: {
+        model: User,
+        as: "user",
+        where: {
+          isActive: true,
+        },
+      },
+    });
+    if (!executive)
+      throw new APIError(" invlaid service executive  id ", " INVALID ID ");
+
+    executive.user.isActive = false;
+    await executive.user.save();
+    return {
+      message: " service executive deleted successfully ",
+    };
   } catch (error) {
     throw new APIError((error as APIError).message, (error as APIError).code);
   }

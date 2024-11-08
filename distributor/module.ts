@@ -147,7 +147,7 @@ export async function placeCartOrders(
       };
     }
   } catch (error) {
-    transaction.rollback();
+    await transaction.rollback();
     throw new APIError((error as APIError).message, (error as APIError).code);
   }
 }

@@ -63,14 +63,19 @@ SalesExce_Order_Relation.init(
     },
   },
   {
-    modelName: "sales-exe-orders-relation-model",
-    tableName: "sales-exe-orders-relation-model",
+    modelName: "sales-exe-order-relation",
+    tableName: "sales-exe-order-relation",
     timestamps: true,
     sequelize,
   }
 );
 
 SalesExce_Order_Relation.belongsTo(Executive, {
-  foreignKey: "id",
-  as: "salesExecutivesId",
+  foreignKey: "salesExecutivesId",
+  as: "salesExecutives",
+});
+
+SalesExce_Order_Relation.belongsTo(Order, {
+  foreignKey: "orderId",
+  as: "orders",
 });

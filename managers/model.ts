@@ -69,3 +69,5 @@ Manager.init(
     sequelize: sequelize,
   }
 );
+
+Manager.belongsTo(User);

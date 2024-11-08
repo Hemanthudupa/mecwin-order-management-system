@@ -4,11 +4,16 @@ import {
   addProductCategoary,
   addProductDetails,
   addProductImages,
+  addSalesExecutives,
   addUserRole,
   createDistributor,
   createManager,
+  deleteManagerByID,
+  deleteServiceExecutive,
+  getAllManagers,
   getAllProducts,
   getAllProductsCategoray,
+  getAllSalesExecutives,
   getAllUserRoles,
   removeProductImage,
 } from "./module";
@@ -176,6 +181,70 @@ app.post(
     try {
       const data = req.body;
       res.status(StatusCodes.CREATED).send(await createManager(data));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.get(
+  "/get-all-managers",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { options } = req.query;
+      res.status(StatusCodes.OK).send(await getAllManagers(options as string));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.patch(
+  "/delete-manager/:id",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      res.status(StatusCodes.OK).send(await deleteManagerByID(id));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.post(
+  "/add-executives",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = req.body;
+      res.status(StatusCodes.CREATED).send(await addSalesExecutives(data));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.get(
+  "/get-all-executives",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { options } = req.query;
+      res
+        .status(StatusCodes.OK)
+        .send(await getAllSalesExecutives(options as string));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.patch(
+  "/delete-service-engineer/:id",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      res
+        .status(StatusCodes.OK)
+        .send(await deleteServiceExecutive(id as string));
     } catch (error) {
       next(error);
     }

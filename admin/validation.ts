@@ -103,3 +103,53 @@ export const createUserDetails = Joi.object({
     "any.required": " userRole is requried field",
   }),
 });
+
+export const createExecutiveValidation = Joi.object({
+  employeeId: Joi.string().required().messages({
+    "string.base": " employeeId should be valid string ",
+    "any.required": " employeeId should not be empty",
+  }),
+  // userId: Joi.string()
+  //   .guid({
+  //     version: "uuidv4",
+  //   })
+  //   .required()
+  //   .messages({
+  //     "guid.base": " userId should be valid string  of ID ",
+  //     "any.required": " userId should not be empty",
+  //   }),
+  location: Joi.string().required().messages({
+    "string.base": " location should be valid string ",
+    "any.required": " location should not be empty",
+  }),
+  managerId: Joi.string()
+    .guid({
+      version: "uuidv4",
+    })
+    .required()
+    .messages({
+      "guid.base": " managerId should be valid string  of ID ",
+      "any.required": " managerId should not be empty",
+    }),
+  password: Joi.string().required().messages({
+    "string.base": "password should be valid string  ",
+    "any.required": " password is requried field",
+  }),
+  userRole: Joi.string()
+    .guid({
+      version: "uuidv4",
+    })
+    .required()
+    .messages({
+      "guid.base": " userRole should be valid string  of ID ",
+      "any.required": " userRole should not be empty",
+    }),
+  email: Joi.string().required().messages({
+    "string.base": "email should be valid string  ",
+    "any.required": " email is requried field",
+  }),
+  phoneNumber: Joi.string().required().messages({
+    "string.base": "phoneNumber should be valid string  ",
+    "any.required": " phoneNumber is requried field",
+  }),
+});
