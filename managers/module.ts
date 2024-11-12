@@ -14,10 +14,12 @@ export async function getOrders(managerId: string, userId: string) {
     const manager: any = await Manager.findOne({ where: { id: managerId } });
 
     const orderDetails = await Order.findAll({
+      attributes: ["id", "shipping_Address"],
       include: [
         {
           model: Distributor,
           as: "customers",
+          attributes: ["id", "shipping_Address_state"],
           where: {
             state: {
               [Op.in]: manager.work_locations,

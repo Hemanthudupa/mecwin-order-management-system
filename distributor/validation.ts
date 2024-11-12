@@ -43,21 +43,34 @@ export const validateDistributor = Joi.object({
     "required.any": "shipping_Address should be valid",
   }),
 
-  city: Joi.string().required().messages({
-    "string.base": "city should be string ",
-    "required.any": "city should be valid",
+  shipping_Address_city: Joi.string().required().messages({
+    "string.base": "shipping_Address_city should be string ",
+    "required.any": "shipping_Address_city should be valid",
   }),
-  state: Joi.string().required().messages({
-    "string.base": "state should be string ",
-    "required.any": "state should be valid",
+  shipping_Address_state: Joi.string().required().messages({
+    "string.base": "shipping_Address_state should be string ",
+    "required.any": "shipping_Address_state should be valid",
   }),
-  pincode: Joi.string().required().messages({
-    "string.base": "pincode should be string ",
-    "required.any": "pincode should be valid",
+  shipping_Address_pincode: Joi.string().required().messages({
+    "string.base": "shipping_Address_pincode should be string ",
+    "required.any": "shipping_Address_pincode should be valid",
   }),
   billing_Address: Joi.string().required().messages({
     "string.base": "billing_Address should be string ",
     "required.any": "billing_Address should be valid",
+  }),
+
+  billing_Address_city: Joi.string().required().messages({
+    "string.base": "billing_Address_city should be string ",
+    "required.any": "billing_Address_city should be valid",
+  }),
+  billing_Address_state: Joi.string().required().messages({
+    "string.base": "billing_Address_state should be string ",
+    "required.any": "billing_Address_state should be valid",
+  }),
+  billing_Address_pincode: Joi.string().required().messages({
+    "string.base": "billing_Address_pincode should be string ",
+    "required.any": "billing_Address_pincode should be valid",
   }),
   additional_remarks: Joi.string().required().messages({
     "string.base": "additional_remarks should be string ",

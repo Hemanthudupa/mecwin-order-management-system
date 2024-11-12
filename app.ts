@@ -12,8 +12,25 @@ import yaml from "yamljs";
 // import morgan from "morgan";
 // app.use(morgan("dev"));
 
-const swaggerDocument = yaml.load("./utils/swagger.yaml");
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+import { serve, setup } from "swagger-ui-express";
+
+import {} from "swagger-jsdoc";
+import cors from "cors";
+// const swaggerDocument = yaml.load("./utils/swagger.yaml");
+
+app.use(cors());
+
+const options = {
+  openapi: "3.1.0",
+  info: {
+    title: "swagger documentation for MECWIN ORDER MANAGEMENT SYSTEM PROJECT ",
+    version: "1.0.0",
+  },
+  swaggerOptions: {
+    url: "http://localhost:5090",
+  },
+};
+app.use("/api-docs", serve, setup(options));
 app.use((req, res, next) => {
   req.on("end", () => {
     console.log(`Request: ${req.method} ${req.url}`);

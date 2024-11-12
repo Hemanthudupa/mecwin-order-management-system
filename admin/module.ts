@@ -84,7 +84,6 @@ export async function createDistributor(data: distributor) {
       { transaction }
     );
     await transaction.commit();
-
     return {
       message: "distributor created successfully ",
     };

@@ -251,9 +251,24 @@ export async function ensureSalesManager(
   try {
     const user: any = (req as any).user;
 
+    const userRole = await UserRole.findOne({
+      where: {
+        userRole: "SALES MANAGER",
+      },
+    });
+    if (!userRole) {
+      throw new APIError(" invalid user role ", " INVALID ROLE ");
+    }
     const manager = await Manager.findOne({
       where: {
         userId: user.id,
+      },
+      include: {
+        model: User,
+        as: "user",
+        where: {
+          id: userRole!.id,
+        },
       },
     });
 
