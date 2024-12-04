@@ -13,3 +13,15 @@ export const validatorAssignSalesExecutor = Joi.object({
     "any.required": "orderId is required field ",
   }),
 });
+
+export const validateSearchOptions = Joi.object({
+  orderid: Joi.string().optional().messages({
+    "string.base": "orderid should be string",
+  }),
+  customerid: Joi.string().optional().messages({
+    "string.base": "customerid should be string",
+  }),
+  employeeId: Joi.string().optional().messages({
+    "string.base": "employeeId should be string",
+  }),
+});

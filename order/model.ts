@@ -1,4 +1,6 @@
 import {
+  ARRAY,
+  BOOLEAN,
   CreationOptional,
   DATE,
   DOUBLE,
@@ -31,6 +33,17 @@ export class Order extends Model<
   declare remarks: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  declare deadLine: CreationOptional<string>;
+  declare advanceAmount: CreationOptional<boolean>;
+  declare payment_terms: CreationOptional<string>;
+  declare approved_by_sales: CreationOptional<boolean>;
+  declare approved_by_accounts: CreationOptional<boolean>;
+  declare approved_by_planning: CreationOptional<boolean>;
+  declare approved_by_customer: CreationOptional<boolean>;
+  declare order_status: CreationOptional<string[]>;
+  declare product_status: CreationOptional<string[]>;
+  declare isActive: CreationOptional<boolean>;
+  declare price: CreationOptional<number>;
 }
 
 Order.init(
@@ -80,7 +93,42 @@ Order.init(
     remarks: {
       type: STRING,
     },
+    advanceAmount: {
+      type: BOOLEAN,
+    },
+    approved_by_accounts: {
+      type: BOOLEAN,
+    },
+    approved_by_customer: {
+      type: BOOLEAN,
+    },
+    approved_by_planning: {
+      type: BOOLEAN,
+    },
+    approved_by_sales: {
+      type: BOOLEAN,
+    },
+    deadLine: {
+      type: STRING,
+    },
+    isActive: {
+      type: BOOLEAN,
+      defaultValue: true,
+    },
+    order_status: {
+      type: ARRAY(STRING),
+    },
+    payment_terms: {
+      type: STRING,
+    },
+    product_status: {
+      type: ARRAY(STRING),
+    },
+    price: {
+      type: DOUBLE,
+    },
   },
+
   {
     sequelize: sequelize,
     modelName: "orders",

@@ -98,6 +98,19 @@ export async function comparePassword(
 
 export function generateJWTToken(user: User) {
   try {
+    console.log(
+      {
+        id: user.id,
+        userName: user.userName,
+        email: user.email,
+        userRole: user.userRole,
+        phoneNumber: user.phoneNumber,
+      },
+      process.env.JWT_SECRET_KEY!,
+      {
+        expiresIn: process.env.JWT_EXPIRATION_TIME! || "7" + "d",
+      }
+    );
     return sign(
       {
         id: user.id,
@@ -108,7 +121,7 @@ export function generateJWTToken(user: User) {
       },
       process.env.JWT_SECRET_KEY!,
       {
-        expiresIn: process.env.JWT_EXPIRATION_TIME! + "d",
+        expiresIn: process.env.JWT_EXPIRATION_TIME! || "7" + "d",
       }
     );
   } catch (error) {
@@ -128,6 +141,7 @@ export async function ensureUser(
   next: NextFunction
 ) {
   try {
+    console.log("ensure user middleware");
     if (req.url == "/admin/add-user-role") {
       next();
       return;
@@ -140,8 +154,9 @@ export async function ensureUser(
     if (!token) {
       throw new APIError("invalid JWT token ");
     }
+
     const payload: any = verify(token, process.env.JWT_SECRET_KEY!);
-    console.log(payload.userRole);
+
     const user = await UserRole.findOne({
       where: {
         id: payload.userRole,
@@ -163,14 +178,15 @@ export async function ensureUser(
     next(error);
   }
 }
-export async function ensureAdmin(
+export async function ensureSystemAdmin(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
   try {
+    console.log("came to admin validation ");
     const user = (req as any).user;
-    if (user.userRole == USER_ROLES.admin) {
+    if (user.userRole == USER_ROLES.systemAdmin) {
       next();
     } else {
       throw new APIError(
@@ -188,7 +204,7 @@ export async function ensureDistributor(
   next: NextFunction
 ) {
   try {
-    console.log((req as any).user);
+    // console.log((req as any).user);
     const { userRole, id } = (req as any).user;
     if (userRole.toUpperCase() == "DISTRIBUTOR" && id) {
       const dist = await Distributor.findOne({ where: { userId: id } });
@@ -201,6 +217,7 @@ export async function ensureDistributor(
       }
 
       (req as any).user.distributorId = dist!.id;
+      console.log("passed ensure ditributor middle ware successfully ");
       next();
     } else {
       throw new APIError(
@@ -227,10 +244,11 @@ export async function ensureSalesExecutive(
       },
       attributes: ["id"],
     });
+
     const salesExcecutive = await Executive.findOne({
       where: {
         userId: user.id,
-        managerId: { [Op.in]: managers },
+        managerId: { [Op.in]: managers.map((ele) => ele.id) },
       },
     });
     if (!salesExcecutive) {
@@ -259,6 +277,7 @@ export async function ensureSalesManager(
     if (!userRole) {
       throw new APIError(" invalid user role ", " INVALID ROLE ");
     }
+
     const manager = await Manager.findOne({
       where: {
         userId: user.id,
@@ -267,13 +286,14 @@ export async function ensureSalesManager(
         model: User,
         as: "user",
         where: {
-          id: userRole!.id,
+          userRole: userRole!.id,
         },
       },
     });
 
     if (manager) {
       (req as any).user.managerId = manager.id;
+      (req as any).user.work_locations = manager.work_locations;
       next();
     } else {
       throw new APIError(

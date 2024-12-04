@@ -66,11 +66,13 @@ export async function placeCartOrders(
   const transaction = await sequelize.transaction();
   try {
     const validatedOrderDetails = await oDetails.validateAsync(orderDetails);
+
     const dist = await Distributor.findOne({
       where: {
         id: distributorId,
       },
     });
+
     if (!dist) {
       throw new APIError("invlaid distributor id ", " INVALID ID ");
     }
@@ -85,7 +87,8 @@ export async function placeCartOrders(
       },
     });
 
-    const orders = cart.map((ele) => {
+    const orders: any = [];
+    for (let ele of cart) {
       const orderTemp: any = {};
 
       /*
@@ -119,11 +122,18 @@ export async function placeCartOrders(
       }
 
       orderTemp["remarks"] = validatedOrderDetails.remarks;
-
-      return orderTemp;
-    });
+      orderTemp["price"] =
+        (
+          await Product.findOne({
+            where: { id: ele.productId as any },
+          })
+        )?.dataValues.price! * ele.quantity;
+      orders.push(orderTemp);
+    }
 
     const createdOrders = await Order.bulkCreate(orders, { transaction });
+
+    console.log(createdOrders, " are the order created bulk report ");
 
     const deletedCart = await Cart.destroy({
       where: {

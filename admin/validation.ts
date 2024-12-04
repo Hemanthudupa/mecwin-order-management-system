@@ -14,7 +14,7 @@ export const validation_User_Role = Joi.object({
   }),
 });
 export const validation_product_details = Joi.object({
-  product_categoary: Joi.string()
+  product_sub_categoary_id: Joi.string()
     .guid({
       version: "uuidv4",
     })
@@ -152,4 +152,16 @@ export const createExecutiveValidation = Joi.object({
     "string.base": "phoneNumber should be valid string  ",
     "any.required": " phoneNumber is requried field",
   }),
+});
+
+export const validation_AddProductSubCategoary = Joi.object({
+  product_categoray_id: Joi.string()
+    .guid({
+      version: "uuidv4",
+    })
+    .required()
+    .messages({
+      "guid.base": " product_categoary should be an valid UUID ",
+      "any.required": "product_categoary must be passed , should not be empty ",
+    }),
 });

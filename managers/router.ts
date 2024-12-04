@@ -5,6 +5,10 @@ import {
   assignSalesExecutive,
   getAllSalesExecutives,
   getOrders,
+  getSalesCompleteDetails,
+  getSalesPendingDetails,
+  getSalesUnderProcessingDetails,
+  searchInfo,
 } from "./module";
 const route = Router();
 
@@ -48,4 +52,60 @@ route.post(
   }
 );
 
+route.get(
+  "/sales-complete",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { options } = req.query;
+      res
+        .status(StatusCodes.OK)
+        .send(await getSalesCompleteDetails(options as string));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+route.get(
+  "/sales-pending",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { options } = req.query;
+      res
+        .status(StatusCodes.OK)
+        .send(await getSalesPendingDetails(options as string));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+route.get(
+  "/sales-underprocessing",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { options } = req.query;
+      res
+        .status(StatusCodes.OK)
+        .send(await getSalesUnderProcessingDetails(options as string));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+route.get(
+  "/search-info",
+  ensureSalesManager,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const options = (req as any).body;
+      res
+        .status(StatusCodes.OK)
+        .send(await searchInfo(options, (req as any).user));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 export default route;

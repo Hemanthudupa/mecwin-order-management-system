@@ -1,17 +1,24 @@
 import { Op, Sequelize } from "sequelize";
 import { SequelizeStorage, Umzug } from "umzug";
-const sequelize = new Sequelize({
+
+console.log({
   database: process.env.DB_NAME,
   username: process.env.DB_USER,
   password: process.env.DB_PASS,
   host: process.env.DB_HOST,
+});
+const sequelize = new Sequelize({
+  database: "mecwin-order-management",
+  username: "postgres",
+  password: "root",
+  host: "localhost",
   dialect: "postgres",
   pool: {
     max: 5,
     min: 0,
     idle: 10000,
   },
-  port: 5432,
+  port: 5433,
   logging: false,
 });
 

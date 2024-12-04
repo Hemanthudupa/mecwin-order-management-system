@@ -2,11 +2,11 @@ import { NextFunction, Request, Response, Router } from "express";
 import { StatusCodes } from "http-status-codes";
 import {
   addProductCategoary,
+  addProductCategoaryImages,
   addProductDetails,
   addProductImages,
+  addProductSubCategoary,
   addSalesExecutives,
-  addUserRole,
-  createDistributor,
   createManager,
   deleteManagerByID,
   deleteServiceExecutive,
@@ -17,22 +17,11 @@ import {
   getAllUserRoles,
   removeProductImage,
 } from "./module";
-import { ensureAdmin } from "../utils/authentication";
+import { ensureSystemAdmin } from "../utils/authentication";
 import { fileMulter } from "../utils/files/distributor_attachments/attachments";
 import { product_images_multer } from "../utils/files/product_images/files";
 import { join } from "path";
 const app = Router();
-app.post(
-  "/add-user-role",
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const role = req.body;
-      res.status(StatusCodes.CREATED).send(await addUserRole(role));
-    } catch (error) {
-      next(error);
-    }
-  }
-);
 
 app.get(
   "/get-all-user-roles",
@@ -45,43 +34,29 @@ app.get(
     }
   }
 );
-app.post(
-  "/register-distributor",
-  fileMulter.single("file"),
+
+app.get(
+  "/get-all-products",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = req.body;
-      // sharp(req.file?.buffer)
-      //   .resize({
-      //     width: 800,
-      //     fit: sharp.fit.inside,
-      //   })
-      //   .withMetadata()
-      //   .toFile(
-      //     join(
-      //       __dirname,
-      //       "..",
-      //       "utils",
-      //       "files",
-      //       "attachments",
-      //       req.file!.originalname.split(".")[0] + ".JPEG"
-      //     )
-      //   );
-      data.attachments = join(
-        __dirname,
-        "..",
-        "utils",
-        "files",
-        "attachments",
-        `${(req as any).fileName}`
-      );
-      res.status(StatusCodes.CREATED).send(await createDistributor(data));
+      res.status(StatusCodes.OK).json(await getAllProducts());
     } catch (error) {
       next(error);
     }
   }
 );
-app.use(ensureAdmin);
+
+app.get(
+  "/get-all-products-categoary",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.status(StatusCodes.OK).send(await getAllProductsCategoray());
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+app.use(ensureSystemAdmin);
 app.post(
   "/add-product-details",
   async (req: Request, res: Response, next: NextFunction) => {
@@ -95,17 +70,8 @@ app.post(
     }
   }
 );
-app.get(
-  "/get-all-products",
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      res.status(StatusCodes.OK).json(await getAllProducts());
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-app.post(
+
+app.patch(
   "/add-product-images/:productId",
   product_images_multer.array("file"),
   async (req: Request, res: Response, next: NextFunction) => {
@@ -164,11 +130,34 @@ app.post(
   }
 );
 
-app.get(
-  "/get-all-products-categoary",
+app.patch(
+  "/add-product-categoary-image/:id",
+  product_images_multer.array("file"),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      res.status(StatusCodes.OK).send(await getAllProductsCategoray());
+      const { id } = req.params;
+      res.status(StatusCodes.OK).send(
+        await addProductCategoaryImages(
+          id,
+          (req.files as any)
+            .map((ele: any) => {
+              return ele.savedFileNamePath;
+            })
+            .join(";")
+        )
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.post(
+  "/add-product-sub-categoray",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = (req as any).body;
+      res.status(StatusCodes.CREATED).send(await addProductSubCategoary(data));
     } catch (error) {
       next(error);
     }
@@ -180,6 +169,7 @@ app.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = req.body;
+      console.log("it came here now ");
       res.status(StatusCodes.CREATED).send(await createManager(data));
     } catch (error) {
       next(error);
@@ -250,5 +240,17 @@ app.patch(
     }
   }
 );
+
+// app.patch(
+//   "/add-product-sub-categoray-images",
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//       const data = (req as any).body;
+//       res.status(StatusCodes.OK).send(await addProductSubCategoary(data));
+//     } catch (error) {
+//       next(error);
+//     }
+//   }
+// );
 
 export default app;

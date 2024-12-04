@@ -10,112 +10,19 @@ import { User } from "../user/model";
 import { hashPassword } from "../utils/authentication";
 import { USER_ROLES } from "../utils/constants";
 import { APIError } from "../utils/Error";
-import { readFileSync, unlink } from "fs";
+import { createReadStream, readFileSync, unlink } from "fs";
 import {
   createExecutiveValidation,
   createManagerValidation,
   createUserDetails,
+  validation_AddProductSubCategoary,
   validation_Product_Categoary,
   validation_product_details,
   validation_User_Role,
 } from "./validation";
 import { Manager } from "../managers/model";
 import { Executive } from "../executives/model";
-
-export async function createDistributor(data: distributor) {
-  const transaction = await sequelize.transaction();
-
-  try {
-    const validDist = await validateDistributor.validateAsync(data);
-    const where: any = {
-      [Op.or]: [],
-    };
-    console.log("1 ");
-    if (validDist.email) {
-      where[Op.or].push({ email: validDist.email });
-    }
-    if (validDist.phoneNumber) {
-      where[Op.or].push({ phoneNumber: validDist.phoneNumber });
-    }
-    console.log(" 2 ");
-
-    const user: any = await User.findOne({
-      where,
-    });
-
-    if (user) {
-      unlink(data.attachments, (err) => {
-        if (err) {
-          console.log("error came while deleting the distributor files ");
-        } else {
-          console.log("File deleted successfully!");
-        }
-      });
-      throw new APIError(
-        "duplicate email or phone number ",
-        " DUPLICATE DATA "
-      );
-    }
-
-    const userRole: any = await UserRole.findOne({
-      where: {
-        userRole: "DISTRIBUTOR",
-      },
-      attributes: ["id"],
-    });
-
-    const userData = await User.create(
-      {
-        email: validDist.email,
-        isActive: true,
-        password: await hashPassword(validDist.password),
-        phoneNumber: validDist.phoneNumber,
-        userName: validDist.fullName,
-        userRole: userRole.id,
-      },
-      { transaction }
-    );
-
-    validDist.userId = userData.dataValues.id;
-    validDist.password = await hashPassword(validDist.password);
-    const dist = await Distributor.create(
-      validDist,
-
-      { transaction }
-    );
-    await transaction.commit();
-    return {
-      message: "distributor created successfully ",
-    };
-  } catch (error) {
-    await transaction.rollback();
-    throw new APIError((error as APIError).message, (error as APIError).code);
-  }
-}
-
-export async function addUserRole(roles: userRole) {
-  try {
-    const validRole = await validation_User_Role.validateAsync(roles);
-
-    const role = await UserRole.findOne({
-      where: {
-        userRole: validRole.userRole,
-      },
-    });
-
-    if (role) {
-      throw new APIError(" user role already present ", " DUPLICATE ROLE ");
-    }
-    const userRole = await UserRole.create(validRole);
-
-    return {
-      data: userRole,
-      message: "successfully created user role ",
-    };
-  } catch (error) {
-    throw new APIError((error as APIError).message, (error as APIError).code);
-  }
-}
+import { Product_Sub_Categoary } from "../products/product_sub_categoary_model";
 
 export async function getAllUserRoles(options: string) {
   try {
@@ -162,9 +69,9 @@ export async function addProductDetails(product_details: any) {
       product_details
     );
 
-    const prodCat = await Product_Categoary.findOne({
+    const prodCat = await Product_Sub_Categoary.findOne({
       where: {
-        id: validatedDetails.product_categoary,
+        id: validatedDetails.product_sub_categoary_id,
       },
     });
 
@@ -225,9 +132,33 @@ export async function addProductImages(id: any, savedImagesPaths: string) {
 export async function getAllProductsCategoray() {
   try {
     const productsCategoary = await Product_Categoary.findAll({
-      attributes: ["id", "categoary_type"],
+      attributes: ["id", "categoary_type", "product_categoray_images"],
     });
-    return productsCategoary;
+
+    let product_categoray_images: any = [];
+
+    const prod = productsCategoary.map((element, ind, arr) => {
+      element.product_categoray_images.split(";").forEach((ele) => {
+        let base = "";
+        const stream = createReadStream(ele);
+
+        stream.on("data", (chunks) => {
+          base += chunks.toString("base64");
+        });
+        stream.on("end", () => {
+          element.product_categoray_images = `data:image/png;base64,${base}`;
+
+          console.log("files are readed completely ");
+        });
+        stream.on("error", (err) => {
+          console.log("error occured while reading the data ", err.message);
+          stream.destroy();
+        });
+      });
+      console.log(element);
+      return element.dataValues;
+    });
+    return prod;
   } catch (error) {
     throw new APIError((error as APIError).message, (error as APIError).code);
   }
@@ -483,6 +414,38 @@ export async function deleteServiceExecutive(id: string) {
     await executive.user.save();
     return {
       message: " service executive deleted successfully ",
+    };
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function addProductCategoaryImages(id: string, paths: string) {
+  try {
+    const prodCat = await Product_Categoary.findOne({ where: { id } });
+    if (!prodCat) {
+      throw new APIError(" invlaid product categoray id ", " INVLAID ID ");
+    }
+    prodCat.set("product_categoray_images", paths);
+    await prodCat.save();
+    return {
+      message: "successfully added images for product categoary",
+    };
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function addProductSubCategoary(data: any) {
+  try {
+    const validatedData: any =
+      await validation_AddProductSubCategoary.validateAsync(data);
+    const product_categoray = await Product_Sub_Categoary.create({
+      product_categoray_id: validatedData.product_categoray_id,
+    });
+    return {
+      message: " product categoray successfully created ",
+      product_categoray,
     };
   } catch (error) {
     throw new APIError((error as APIError).message, (error as APIError).code);

@@ -1,12 +1,12 @@
 export const USER_ROLES = {
   consumer: "CONSUMER",
-  admin: "ADMIN",
+  systemAdmin: "SYSTEM ADMIN",
   distributor: "DISTRIBUTOR",
   manager: "MANAGER",
   executive: "EXECUTIVE",
 };
 export const PRODUCTS_CATEGOARY = {
-  ac_motor: "AC_MOTOR",
+  solar_pumps: "SOLAR PUMPS",
   dc_motor: "DC_MOTOR",
 };
 

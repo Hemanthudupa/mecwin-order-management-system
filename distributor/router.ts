@@ -44,6 +44,7 @@ route.post(
     try {
       const { distributorId } = (req as any).user;
       const data = req.body;
+
       res
         .status(StatusCodes.CREATED)
         .send(await placeCartOrders(distributorId, data));

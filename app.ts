@@ -11,15 +11,17 @@ import swaggerUi from "swagger-ui-express";
 import yaml from "yamljs";
 // import morgan from "morgan";
 // app.use(morgan("dev"));
+import executive from "./executives/router";
 
 import { serve, setup } from "swagger-ui-express";
 
 import {} from "swagger-jsdoc";
+import hpp from "hpp";
 import cors from "cors";
 // const swaggerDocument = yaml.load("./utils/swagger.yaml");
 
 app.use(cors());
-
+app.use(hpp());
 const options = {
   openapi: "3.1.0",
   info: {
@@ -49,6 +51,7 @@ app.use(ensureUser);
 app.use("/admin", admin);
 app.use("/distributor", distributor);
 app.use("/manager", manager);
+app.use("/executive", executive);
 
 app.use(errorHandler);
 function errorHandler(
