@@ -1,24 +1,31 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { StatusCodes } from "http-status-codes";
-import { ensureSalesManager } from "../utils/authentication";
+import {
+  ensureSalesManager,
+  ensureStoresManager,
+} from "../utils/authentication";
 import {
   assignSalesExecutive,
+  assignStoresExecutiveOrder,
+  getAllOrdersStores,
   getAllSalesExecutives,
-  getOrders,
+  getAllStoresExecutives,
+  getOrdersSales,
   getSalesCompleteDetails,
   getSalesPendingDetails,
   getSalesUnderProcessingDetails,
+  getStoresOrderById,
   searchInfo,
 } from "./module";
 const route = Router();
 
 route.get(
-  "/get-orders",
+  "/get-orders-sales",
   ensureSalesManager,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { managerId, id } = (req as any).user;
-      res.status(StatusCodes.OK).send(await getOrders(managerId, id));
+      res.status(StatusCodes.OK).send(await getOrdersSales(managerId, id));
     } catch (error) {
       next(error);
     }
@@ -40,6 +47,8 @@ route.get(
 
 route.post(
   "/assign-sales-executive",
+  ensureSalesManager,
+
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { salesExecutiveId, orderId } = req.body;
@@ -54,6 +63,8 @@ route.post(
 
 route.get(
   "/sales-complete",
+  ensureSalesManager,
+
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { options } = req.query;
@@ -68,6 +79,7 @@ route.get(
 
 route.get(
   "/sales-pending",
+  ensureSalesManager,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { options } = req.query;
@@ -82,6 +94,8 @@ route.get(
 
 route.get(
   "/sales-underprocessing",
+  ensureSalesManager,
+
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { options } = req.query;
@@ -108,4 +122,55 @@ route.get(
     }
   }
 );
+
+route.get(
+  "/get-orders-stores",
+  ensureStoresManager,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.status(StatusCodes.OK).send(await getAllOrdersStores());
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+route.get(
+  "/get-order/:id",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      res.status(StatusCodes.OK).send(await getStoresOrderById(id));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+route.get(
+  "/get-all-stores-executives",
+  ensureStoresManager,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { managerId } = (req as any).user;
+      res.status(StatusCodes.OK).send(await getAllStoresExecutives(managerId));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+route.post(
+  "/assign-stores-executive",
+  ensureStoresManager,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = req.body;
+      res.status(StatusCodes.OK).send(await assignStoresExecutiveOrder(data));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 export default route;

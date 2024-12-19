@@ -2,7 +2,7 @@ import { Op } from "sequelize";
 import { Distributor } from "../distributor/model";
 import { validateDistributor } from "../distributor/validation";
 import { distributor, userRole } from "../types";
-import { unlink } from "fs";
+import { createReadStream, readFileSync, unlink } from "fs";
 import {
   comparePassword,
   generateJWTToken,
@@ -14,6 +14,8 @@ import { loginValidation } from "./validation";
 import { UserRole } from "../roles/model";
 import sequelize from "../database";
 import { validation_User_Role } from "../admin/validation";
+import { Product } from "../products/model";
+import { tranform } from "../utils/transfroms";
 
 export async function login(
   email: string,
@@ -165,3 +167,74 @@ export async function addUserRole(roles: userRole) {
     throw new APIError((error as APIError).message, (error as APIError).code);
   }
 }
+
+export async function getAllProducts() {
+  try {
+    const products = await Product.findAll({
+      raw: true,
+    });
+    return products.map((ele) => {
+      if (ele.product_image) {
+        const buffer = readFileSync(ele.product_image.split(";")[0]);
+        ele.product_image = `data:image/jpeg;base64,${buffer.toString(
+          "base64"
+        )}`; //pass product_image inside the img tag of react
+      }
+
+      return ele;
+    });
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function getProductById(id: string) {
+  try {
+    const product: any = await Product.findOne({
+      where: {
+        id,
+      },
+      raw: true,
+    });
+    if (!product) throw new APIError(" invlaid product id ", " INVALID ID ");
+
+    const images = product.product_image?.split(";");
+    product.product_images = [];
+    let ind = 1;
+    if (!images) return product;
+    for (let ele of images) {
+      const data = await tranform(ele);
+      product.product_images.push(data);
+    }
+    return product;
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+/*
+    const products = await Product.findAll({
+      raw: true,
+    });
+    return products.map((ele: any) => {
+      if (ele.product_image) {
+        ele.product_image.split(";").forEach((img: any, ind: any) => {
+          const buffer = readFileSync(img);
+          console.log(ind, " is the index ");
+          if (ind == 0) {
+            ele[
+              "product_image" + +(Number(ind) + 1)
+            ] = `data:image/jpeg;base64,${buffer.toString("base64")}`;
+            console.log(" came to if ");
+          }
+          //pass product_image inside the img tag of react
+          else {
+            ele[
+              "product_image" + +(Number(ind) + 1)
+            ] = `data:image/jpeg;base64,${buffer.toString("base64")}`;
+          }
+        });
+      }
+
+      return ele;
+*/

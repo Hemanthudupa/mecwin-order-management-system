@@ -89,28 +89,17 @@ export async function addProductDetails(product_details: any) {
   }
 }
 
-export async function getAllProducts() {
-  try {
-    const products = await Product.findAll({
-      raw: true,
-    });
-
-    return products.map((ele) => {
-      const buffer = readFileSync(ele.product_image.split(";")[0]);
-      ele.product_image = `data:image/jpeg;base64,${buffer.toString("base64")}`; //pass product_image inside the img tag of react
-      return ele;
-    });
-  } catch (error) {
-    throw new APIError((error as APIError).message, (error as APIError).code);
-  }
-}
 export async function addProductImages(id: any, savedImagesPaths: string) {
   try {
+    console.log(savedImagesPaths);
     const product = await Product.findOne({
       where: {
         id,
       },
     });
+
+    if (!product)
+      throw new APIError(" product doesnot exist ", " INVALID PRODUCT ID ");
     product?.set("product_image", savedImagesPaths);
     await product?.save();
     return {
@@ -273,7 +262,14 @@ export async function getAllManagers(options: string) {
     }
     const managers = await Manager.findAll({
       where,
-
+      attributes: [
+        ["id", "managerId"],
+        "employeeId",
+        "work_locations",
+        "userName",
+        "department",
+        "userId",
+      ],
       include: {
         model: User,
         as: "user",
@@ -320,7 +316,7 @@ export async function addSalesExecutives(body: any) {
     );
     const user = {
       userName: validatedExecutive.userName,
-      phoneNumber: validatedExecutive.userName,
+      phoneNumber: validatedExecutive.phoneNumber,
       email: validatedExecutive.email,
       userRole: validatedExecutive.userRole,
       password: await hashPassword(validatedExecutive.password),
@@ -345,8 +341,8 @@ export async function addSalesExecutives(body: any) {
         " DUPLICATE PROPERTIES "
       );
     }
-    const userDetails: any = await User.create(user, { transaction });
 
+    const userDetails: any = await User.create(user, { transaction });
     const sales = {
       employeeId: validatedExecutive.employeeId,
       location: validatedExecutive.location,
@@ -440,9 +436,7 @@ export async function addProductSubCategoary(data: any) {
   try {
     const validatedData: any =
       await validation_AddProductSubCategoary.validateAsync(data);
-    const product_categoray = await Product_Sub_Categoary.create({
-      product_categoray_id: validatedData.product_categoray_id,
-    });
+    const product_categoray = await Product_Sub_Categoary.create(validatedData);
     return {
       message: " product categoray successfully created ",
       product_categoray,

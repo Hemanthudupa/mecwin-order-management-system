@@ -7,19 +7,22 @@ console.log({
   password: process.env.DB_PASS,
   host: process.env.DB_HOST,
 });
+const database = process.env.DB_NAME;
+const username = process.env.DB_USER;
+const password = process.env.DB_PASS;
+const host = process.env.DB_HOST;
 const sequelize = new Sequelize({
-  database: "mecwin-order-management",
-  username: "postgres",
-  password: "root",
-  host: "localhost",
+  database,
+  username,
+  password,
+  host,
   dialect: "postgres",
   pool: {
     max: 5,
     min: 0,
     idle: 10000,
   },
-  port: 5433,
-  logging: false,
+  logging: console.log,
 });
 
 export async function connectToDataBase() {

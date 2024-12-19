@@ -1,6 +1,12 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { StatusCodes } from "http-status-codes";
-import { addUserRole, createDistributor, login } from "./module";
+import {
+  addUserRole,
+  createDistributor,
+  getAllProducts,
+  getProductById,
+  login,
+} from "./module";
 import { join } from "path";
 import { fileMulter } from "../utils/files/distributor_attachments/attachments";
 import sharp from "sharp";
@@ -60,6 +66,29 @@ app.post(
     try {
       const role = req.body;
       res.status(StatusCodes.CREATED).send(await addUserRole(role));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.get(
+  "/get-all-products",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.status(StatusCodes.OK).json(await getAllProducts());
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.get(
+  "/get-product/:id",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      res.status(StatusCodes.OK).send(await getProductById(id));
     } catch (error) {
       next(error);
     }

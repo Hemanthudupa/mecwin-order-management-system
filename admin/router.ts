@@ -11,7 +11,6 @@ import {
   deleteManagerByID,
   deleteServiceExecutive,
   getAllManagers,
-  getAllProducts,
   getAllProductsCategoray,
   getAllSalesExecutives,
   getAllUserRoles,
@@ -29,17 +28,6 @@ app.get(
     try {
       const { options } = req.query;
       res.status(StatusCodes.OK).send(await getAllUserRoles(options as string));
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-app.get(
-  "/get-all-products",
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      res.status(StatusCodes.OK).json(await getAllProducts());
     } catch (error) {
       next(error);
     }

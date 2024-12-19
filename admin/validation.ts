@@ -5,6 +5,10 @@ export const validation_Product_Categoary = Joi.object({
     "string.base": "categoary_type should be valid string ",
     "any.required": " categoary_type is required cannot be empty",
   }),
+  product_categoray_name: Joi.string().required().messages({
+    "string.base": "product_categoray_name should be valid string ",
+    "any.required": " product_categoray_name is required cannot be empty",
+  }),
 });
 
 export const validation_User_Role = Joi.object({
@@ -152,6 +156,10 @@ export const createExecutiveValidation = Joi.object({
     "string.base": "phoneNumber should be valid string  ",
     "any.required": " phoneNumber is requried field",
   }),
+  userName: Joi.string().optional().messages({
+    "string.base": "userName should be valid string  ",
+    "any.required": " userName is requried field",
+  }),
 });
 
 export const validation_AddProductSubCategoary = Joi.object({
@@ -164,4 +172,8 @@ export const validation_AddProductSubCategoary = Joi.object({
       "guid.base": " product_categoary should be an valid UUID ",
       "any.required": "product_categoary must be passed , should not be empty ",
     }),
+  product_sub_categoray_name: Joi.string().required().messages({
+    "string.base": " product categoary must be an array ",
+    "any.required": " product categoary should be valid , cant be empty",
+  }),
 });

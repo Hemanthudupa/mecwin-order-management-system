@@ -18,6 +18,7 @@ export class Product_Sub_Categoary extends Model<
 > {
   declare id: CreationOptional<string>;
   declare product_categoray_id: CreationOptional<string>;
+  declare product_sub_categoray_name: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -35,6 +36,9 @@ Product_Sub_Categoary.init(
         model: Product_Categoary,
         key: "id",
       },
+    },
+    product_sub_categoray_name: {
+      type: STRING,
     },
     createdAt: {
       type: DATE,

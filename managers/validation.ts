@@ -15,13 +15,37 @@ export const validatorAssignSalesExecutor = Joi.object({
 });
 
 export const validateSearchOptions = Joi.object({
-  orderid: Joi.string().optional().messages({
-    "string.base": "orderid should be string",
-  }),
+  orderid: Joi.string()
+    .guid({
+      version: "uuidv4",
+    })
+    .optional()
+    .messages({
+      "guid.base": "orderid should be valid UUID id ",
+    }),
   customerid: Joi.string().optional().messages({
     "string.base": "customerid should be string",
   }),
   employeeId: Joi.string().optional().messages({
     "string.base": "employeeId should be string",
   }),
+});
+
+export const validateAssignStoresExecutive = Joi.object({
+  orderId: Joi.string()
+    .guid({
+      version: "uuidv4",
+    })
+    .required()
+    .messages({
+      "guid.base": "orderid should be valid UUID id ",
+    }),
+  storesExecutivesId: Joi.string()
+    .guid({
+      version: "uuidv4",
+    })
+    .optional()
+    .messages({
+      "guid.base": "storesExecutivesId should be valid UUID id ",
+    }),
 });

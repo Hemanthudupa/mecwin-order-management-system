@@ -40,10 +40,24 @@ export class Order extends Model<
   declare approved_by_accounts: CreationOptional<boolean>;
   declare approved_by_planning: CreationOptional<boolean>;
   declare approved_by_customer: CreationOptional<boolean>;
+  declare approved_by_stores: CreationOptional<boolean>;
+
   declare order_status: CreationOptional<string[]>;
   declare product_status: CreationOptional<string[]>;
   declare isActive: CreationOptional<boolean>;
   declare price: CreationOptional<number>;
+
+  declare headSize: CreationOptional<number>;
+  declare motorType: CreationOptional<string>;
+  declare current: CreationOptional<string>;
+  declare diameter: CreationOptional<string>;
+  declare pannelType: CreationOptional<string>;
+  declare spd: CreationOptional<string>;
+  declare data: CreationOptional<string>;
+  declare warranty: CreationOptional<string>;
+  declare transportation: CreationOptional<string>;
+  declare sales_negotiation_status: CreationOptional<string>;
+  declare stores_status: CreationOptional<string>;
 }
 
 Order.init(
@@ -87,6 +101,12 @@ Order.init(
     reason: {
       type: STRING,
     },
+    sales_negotiation_status: {
+      type: STRING,
+    },
+    stores_status: {
+      type: STRING,
+    },
     discount: {
       type: DOUBLE,
     },
@@ -108,6 +128,9 @@ Order.init(
     approved_by_sales: {
       type: BOOLEAN,
     },
+    approved_by_stores: {
+      type: BOOLEAN,
+    },
     deadLine: {
       type: STRING,
     },
@@ -126,6 +149,33 @@ Order.init(
     },
     price: {
       type: DOUBLE,
+    },
+    data: {
+      type: STRING,
+    },
+    diameter: {
+      type: STRING,
+    },
+    current: {
+      type: STRING,
+    },
+    headSize: {
+      type: NUMBER,
+    },
+    motorType: {
+      type: STRING,
+    },
+    pannelType: {
+      type: STRING,
+    },
+    spd: {
+      type: STRING,
+    },
+    transportation: {
+      type: STRING,
+    },
+    warranty: {
+      type: STRING,
     },
   },
 

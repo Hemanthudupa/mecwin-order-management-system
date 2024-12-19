@@ -141,7 +141,7 @@ export async function ensureUser(
   next: NextFunction
 ) {
   try {
-    console.log("ensure user middleware");
+    // console.log("ensure user middleware");
     if (req.url == "/admin/add-user-role") {
       next();
       return;
@@ -150,13 +150,17 @@ export async function ensureUser(
     if (!req.headers.authorization) {
       throw new APIError("JWT token required ");
     }
+
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
       throw new APIError("invalid JWT token ");
     }
 
+    // console.log("hiMecwin@007123", process.env.JWT_SECRET_KEY);
+
     const payload: any = verify(token, process.env.JWT_SECRET_KEY!);
 
+    // console.log("came 1000");
     const user = await UserRole.findOne({
       where: {
         id: payload.userRole,
@@ -187,6 +191,7 @@ export async function ensureSystemAdmin(
     console.log("came to admin validation ");
     const user = (req as any).user;
     if (user.userRole == USER_ROLES.systemAdmin) {
+      console.log("got it correct ");
       next();
     } else {
       throw new APIError(
@@ -217,7 +222,7 @@ export async function ensureDistributor(
       }
 
       (req as any).user.distributorId = dist!.id;
-      console.log("passed ensure ditributor middle ware successfully ");
+      // console.log("passed ensure ditributor middle ware successfully ");
       next();
     } else {
       throw new APIError(
@@ -298,6 +303,63 @@ export async function ensureSalesManager(
     } else {
       throw new APIError(
         " only manager can perform this action ",
+        " INVALID USER ROLE "
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function ensureStoresManager(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const user = (req as any).user;
+    if (user.userRole == "STORES MANAGER") {
+      const manager = await Manager.findOne({
+        where: { userId: user.id },
+      });
+      if (!manager) {
+        next(new APIError(" manager doesnot exist ", "INVALID MANAGER ID "));
+      }
+      (req as any).user.managerId = manager!.id;
+      next();
+    } else {
+      next(
+        new APIError(
+          "only stores manager can perform this action ",
+          "INVALID USER ROLE "
+        )
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function ensureStoresExecutive(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const user = (req as any).user;
+
+    if (user.userRole == "STORES EXECUTIVE") {
+      const executive = await Executive.findOne({
+        where: {
+          userId: user.id,
+        },
+        raw: true,
+      });
+      (req as any).user.executiveId = executive!.id;
+      next();
+    } else {
+      throw new APIError(
+        " only stores executives can perform this action ",
         " INVALID USER ROLE "
       );
     }

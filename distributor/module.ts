@@ -6,6 +6,8 @@ import { Product } from "../products/model";
 import { APIError } from "../utils/Error";
 import { Distributor } from "./model";
 import { orderDetails as oDetails } from "./validation";
+import { SalesExce_Order_Relation } from "../executives/sales-exe-orders-relation-model";
+import { tranform } from "../utils/transfroms";
 
 export async function addProductsToCart(
   productId: any,
@@ -42,18 +44,71 @@ export async function addProductsToCart(
   }
 }
 
-export async function getAllCartProducts(customerId: string) {
+export async function deleteCartItemById(id: string) {
   try {
-    const cart = await Cart.findAll({
+    const cart = await Cart.findOne({
+      where: { id },
+    });
+    if (!cart) {
+      throw new APIError(" invlaid cart id ", " INVALID ID !!!");
+    }
+    await cart.destroy();
+    return {
+      message: " successfully product removed from the cart successfully ",
+    };
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function getAllCartProducts(customerId: string, options: string) {
+  try {
+    if (options && options.toLowerCase() == "count") {
+      const count = await Cart.count({
+        where: {
+          customerId,
+        },
+      });
+      return {
+        count,
+      };
+    } else if (options && options.toLowerCase() != "count") {
+      throw new APIError(
+        " invlaid options provided , it  should be count ",
+        "INVALID OPTIONS "
+      );
+    }
+    const cart: any = await Cart.findAll({
       where: {
         customerId,
       },
+      attributes: [["id", "cartId"], "customerId", "quantity"],
+
       include: {
         model: Product,
         as: "products",
       },
     });
-    return { data: cart };
+    const retunredCart: any = [];
+    for (let ele of cart) {
+      const newCart = Object.assign(ele);
+      newCart.dataValues.productImages = [];
+      for (let elememt of ele.products.product_image.split(";")) {
+        newCart.dataValues.productImages.push(await tranform(elememt));
+      }
+      delete newCart.dataValues.products.dataValues.product_image;
+      delete newCart.dataValues.products.dataValues.createdAt;
+
+      delete newCart.dataValues.products.dataValues.updatedAt;
+
+      delete newCart.dataValues.productId;
+      delete newCart.dataValues.createdAt;
+
+      delete newCart.dataValues.updatedAt;
+
+      retunredCart.push(newCart);
+    }
+    return { data: retunredCart };
   } catch (error) {
     throw new APIError((error as APIError).message, (error as APIError).code);
   }
@@ -158,6 +213,63 @@ export async function placeCartOrders(
     }
   } catch (error) {
     await transaction.rollback();
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function getAllNegotiatedOrders(customerId: string) {
+  try {
+    return await Order.findAll({
+      where: { customerId, sales_negotiation_status: "PENDING ACCEPTANCE" },
+    });
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function acceptNegotiatedOrder(orderId: string) {
+  try {
+    const order = await Order.findOne({
+      where: { id: orderId },
+    });
+    if (!order) throw new APIError(" invalid order id ", " INVALID ID ");
+    order.sales_negotiation_status = "NEGOTIATED";
+    await order.save();
+    const salesOrd = await SalesExce_Order_Relation.findOne({
+      where: {
+        orderId,
+      },
+    });
+    if (!salesOrd) throw new APIError(" invalid order id ", " INVALID ID ");
+
+    salesOrd.isActive = false;
+
+    await salesOrd.save();
+    return {
+      message: " customer happy with the negotiated money ",
+    };
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function getProductByIdImages(product_image: string) {
+  try {
+    // const product: any = await Product.findOne({
+    //   where: {
+    //     id,
+    //   },
+    // });
+    // if (!product) throw new APIError(" invlaid product id ", " INVALID ID ");
+
+    const images = product_image.split(";");
+    let product: any = "";
+    for (let ele of images) {
+      const data = await tranform(ele);
+      product = data;
+    }
+    return product;
+  } catch (error) {
     throw new APIError((error as APIError).message, (error as APIError).code);
   }
 }
