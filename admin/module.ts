@@ -16,6 +16,7 @@ import {
   createManagerValidation,
   createUserDetails,
   validation_AddProductSubCategoary,
+  validation_AdvanceAmt,
   validation_Product_Categoary,
   validation_product_details,
   validation_User_Role,
@@ -23,6 +24,7 @@ import {
 import { Manager } from "../managers/model";
 import { Executive } from "../executives/model";
 import { Product_Sub_Categoary } from "../products/product_sub_categoary_model";
+import { AdvanceAmt } from "../advance_amt/model";
 
 export async function getAllUserRoles(options: string) {
   try {
@@ -441,6 +443,24 @@ export async function addProductSubCategoary(data: any) {
       message: " product categoray successfully created ",
       product_categoray,
     };
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function addAdvanceAmount(data: any) {
+  try {
+    await validation_AdvanceAmt.validateAsync(data);
+    await AdvanceAmt.create(data);
+    return { message: " advance amount added successfully " };
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function getAdvanceAmount() {
+  try {
+    return await AdvanceAmt.findAll({});
   } catch (error) {
     throw new APIError((error as APIError).message, (error as APIError).code);
   }

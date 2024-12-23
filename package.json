@@ -41,8 +41,10 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "tsc": "^2.0.4",
-    "typescript": "^5.6.3",
     "umzug": "^3.8.2",
     "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
   }
 }

@@ -249,13 +249,16 @@ export async function ensureSalesExecutive(
       },
       attributes: ["id"],
     });
-
+    console.log(user.id, " is the user id ", managers);
     const salesExcecutive = await Executive.findOne({
       where: {
         userId: user.id,
         managerId: { [Op.in]: managers.map((ele) => ele.id) },
       },
     });
+
+    console.log({ [Op.in]: managers.map((ele) => ele.id) });
+
     if (!salesExcecutive) {
       throw new APIError("invlaid sales excecutive ", " INVALID ID ");
     }

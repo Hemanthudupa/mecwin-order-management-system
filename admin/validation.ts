@@ -177,3 +177,10 @@ export const validation_AddProductSubCategoary = Joi.object({
     "any.required": " product categoary should be valid , cant be empty",
   }),
 });
+
+export const validation_AdvanceAmt = Joi.object({
+  advanceAmt: Joi.string().required().messages({
+    "string.base": "advanceAmt should be valid string",
+    "any.required": "advanceAmt is required field",
+  }),
+});

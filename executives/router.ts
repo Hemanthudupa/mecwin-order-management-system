@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from "express";
 import { StatusCodes } from "http-status-codes";
 import {
   getAllStoresExecutiveOrders,
+  getCustomersRejectedOrders,
   getOrdersByDays,
   getSalesExecutiveOrders,
   getStoreExecutiveOrderById,
@@ -15,13 +16,100 @@ import {
 } from "../utils/authentication";
 const route = Router();
 
+/**
+ * @swagger
+ * /get-sales-executive-orders:
+ *   get:
+ *     summary: Get orders for a sales executive
+ *     tags:
+ *       - Sales-Executive
+ *     description: Retrieve all active orders assigned to a sales executive. Filters are available by date range or relative time (e.g., today, week, month).
+ *     parameters:
+ *       - in: query
+ *         name: from
+ *         schema:
+ *           type: string
+ *           format: date
+ *         required: false
+ *         description: Start date of the date range (in YYYY-MM-DD format)
+ *       - in: query
+ *         name: to
+ *         schema:
+ *           type: string
+ *           format: date
+ *         required: false
+ *         description: End date of the date range (in YYYY-MM-DD format)
+ *       - in: query
+ *         name: time
+ *         schema:
+ *           type: string
+ *           enum: [today, week, month]
+ *         required: false
+ *         description: Relative time filter (e.g., orders from today, this week, or this month)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         required: false
+ *         description: Page number for pagination (default is 1)
+ *       - in: query
+ *         name: pageSize
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         required: false
+ *         description: Number of records per page (default is 10)
+ *     responses:
+ *       '200':
+ *         description: A successful response containing order details for the sales executive
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         description: The sales executive's order relation ID
+ *                         example: "12345"
+ *                       orders:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                             description: The order ID
+ *                             example: "54321"
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             description: The creation timestamp of the order
+ *                             example: "2024-01-01T12:00:00Z"
+ *                           isActive:
+ *                             type: boolean
+ *                             description: Whether the order is active
+ *                             example: true
+ *       '400':
+ *         description: Bad Request - Invalid or missing parameters
+ *       '500':
+ *         description: Internal Server Error
+ */
+
 route.get(
   "/get-sales-executive-orders",
   ensureSalesExecutive,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { salesExcecutiveId: id } = (req as any).user;
-      const { from, to, time, searchById } = req.query;
+      console.log(id);
+      const { from, to, time, searchById, page = 1, pageSize = 10 } = req.query;
       res
         .status(StatusCodes.OK)
         .send(
@@ -29,7 +117,9 @@ route.get(
             id as string,
             from as any,
             to as any,
-            time as any
+            time as any,
+            page as number,
+            pageSize as number
           )
         );
     } catch (error) {
@@ -37,6 +127,85 @@ route.get(
     }
   }
 );
+
+/**
+ * @swagger
+ * /executive/update-order-details:
+ *   patch:
+ *     summary: Update order details
+ *     tags:
+ *       - Sales-Executives
+ *     description: Updates the details of an existing order and marks it as approved by sales.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               orderId:
+ *                 type: string
+ *                 description: The ID of the order to update
+ *                 example: "order12345"
+ *               advanceAmount:
+ *                 type: boolean
+ *                 description: Whether advance payment has been made
+ *                 example: true
+ *               diameter:
+ *                 type: number
+ *                 description: Diameter value for the order
+ *                 example: 10.5
+ *               headSize:
+ *                 type: number
+ *                 description: Head size for the order
+ *                 example: 20
+ *               motorType:
+ *                 type: string
+ *                 description: Motor type for the order
+ *                 example: "DC Motor"
+ *               current:
+ *                 type: number
+ *                 description: Current value for the order
+ *                 example: 15
+ *               pannelType:
+ *                 type: string
+ *                 description: Panel type for the order
+ *                 example: "Solar Panel"
+ *               spd:
+ *                 type: string
+ *                 description: SPD value for the order
+ *                 example: "High Speed"
+ *               data:
+ *                 type: string
+ *                 description: Additional data related to the order
+ *                 example: "Extra requirements"
+ *               warranty:
+ *                 type: string
+ *                 description: Warranty information
+ *                 example: "1 Year"
+ *               transportation:
+ *                 type: string
+ *                 description: Transportation method
+ *                 example: "Truck"
+ *     responses:
+ *       '200':
+ *         description: Successfully updated the order details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message
+ *                   example: "Order updated successfully"
+ *       '400':
+ *         description: Bad Request - Invalid input data
+ *       '404':
+ *         description: Invalid order ID
+ *       '500':
+ *         description: Internal Server Error
+ */
 
 route.patch(
   "/update-order-details",
@@ -50,6 +219,101 @@ route.patch(
     }
   }
 );
+
+/**
+ * @swagger
+ * /executive/sort-orders-by-days:
+ *   get:
+ *     summary: Get orders filtered by date or ID
+ *     tags:
+ *       - Sales-Executives
+ *     description: Retrieves orders filtered by a specified date range, time period (today, week, or month), or by order ID.
+ *     parameters:
+ *       - in: query
+ *         name: options
+ *         schema:
+ *           type: string
+ *           enum: [today, week, month]
+ *         required: false
+ *         description: Filter orders by a specific time period (`today`, `week`, or `month`).
+ *       - in: query
+ *         name: from
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         required: false
+ *         description: Start date of the date range (e.g., 2024-12-01T00:00:00.000Z).
+ *       - in: query
+ *         name: to
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         required: false
+ *         description: End date of the date range (e.g., 2024-12-31T23:59:59.000Z).
+ *       - in: query
+ *         name: searchById
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Filter orders by a partial match on the order ID.
+ *       - in: header
+ *         name: Authorization
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Bearer token for authentication.
+ *     responses:
+ *       '200':
+ *         description: Successfully fetched orders
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               description: List of orders matching the specified criteria
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: Sales-Executive-Order relation ID
+ *                     example: "rel12345"
+ *                   salesExecutivesId:
+ *                     type: string
+ *                     description: ID of the sales executive
+ *                     example: "exec12345"
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                     description: Timestamp when the order relation was created
+ *                     example: "2024-12-20T10:00:00.000Z"
+ *                   updatedAt:
+ *                     type: string
+ *                     format: date-time
+ *                     description: Timestamp when the order relation was last updated
+ *                     example: "2024-12-20T12:00:00.000Z"
+ *                   orders:
+ *                     type: object
+ *                     description: Details of the associated order
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         description: Order ID
+ *                         example: "order12345"
+ *                       shipping_Address:
+ *                         type: string
+ *                         description: Shipping address of the order
+ *                         example: "123 Street Name, Industrial Area"
+ *                       billing_Address:
+ *                         type: string
+ *                         description: Billing address of the order
+ *                         example: "456 Avenue Road, Business District"
+ *       '400':
+ *         description: Bad Request - Invalid query parameters
+ *       '401':
+ *         description: Unauthorized
+ *       '500':
+ *         description: Internal Server Error
+ */
 
 route.get(
   "/sort-orders-by-days",
@@ -73,6 +337,73 @@ route.get(
   }
 );
 
+/**
+ * @swagger
+ * /executive/get-all-stores-executive-orders:
+ *   get:
+ *     summary: Get all active orders assigned to a store executive
+ *     tags:
+ *       - Stores-Executives
+ *     description: Retrieves all orders assigned to a specific store executive that are active and under process.
+ *     parameters:
+ *       - in: header
+ *         name: Authorization
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Bearer token for authentication.
+ *     responses:
+ *       '200':
+ *         description: Successfully fetched orders assigned to the store executive.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               description: List of orders assigned to the store executive.
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: Store-Executive-Order relation ID.
+ *                     example: "rel12345"
+ *                   storesExecutivesId:
+ *                     type: string
+ *                     description: ID of the store executive.
+ *                     example: "exec56789"
+ *                   isActive:
+ *                     type: boolean
+ *                     description: Indicates whether the relation is active.
+ *                     example: true
+ *                   isUnderProcess:
+ *                     type: boolean
+ *                     description: Indicates whether the order is under process.
+ *                     example: true
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                     description: Timestamp of when the relation was created.
+ *                     example: "2024-12-20T10:00:00.000Z"
+ *                   updatedAt:
+ *                     type: string
+ *                     format: date-time
+ *                     description: Timestamp of when the relation was last updated.
+ *                     example: "2024-12-20T12:00:00.000Z"
+ *                   orders:
+ *                     type: object
+ *                     description: Details of the associated order.
+ *                     properties:
+ *                       deadLine:
+ *                         type: string
+ *                         format: date-time
+ *                         description: Deadline for the order.
+ *                         example: "2024-12-31T23:59:59.000Z"
+ *       '401':
+ *         description: Unauthorized
+ *       '500':
+ *         description: Internal Server Error
+ */
+
 route.get(
   "/get-all-stores-executive-orders",
   ensureStoresExecutive,
@@ -88,6 +419,82 @@ route.get(
   }
 );
 
+/**
+ * @swagger
+ * /executive/get-stores-executive-order/{orderId}:
+ *   get:
+ *     summary: Get order details by order ID for a store executive
+ *     tags:
+ *       - Stores-Executives
+ *     description: Retrieves detailed information about a specific order assigned to a store executive using the order ID.
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the order to retrieve.
+ *       - in: header
+ *         name: Authorization
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Bearer token for authentication.
+ *     responses:
+ *       '200':
+ *         description: Successfully fetched order details.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               description: Details of the order and its association with the store executive.
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   description: Store-Executive-Order relation ID.
+ *                   example: "rel12345"
+ *                 orderId:
+ *                   type: string
+ *                   description: ID of the associated order.
+ *                   example: "order12345"
+ *                 storesExecutivesId:
+ *                   type: string
+ *                   description: ID of the store executive.
+ *                   example: "exec56789"
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   description: Timestamp of when the relation was created.
+ *                   example: "2024-12-20T10:00:00.000Z"
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *                   description: Timestamp of when the relation was last updated.
+ *                   example: "2024-12-20T12:00:00.000Z"
+ *                 orders:
+ *                   type: object
+ *                   description: Details of the associated order.
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       description: Order ID.
+ *                       example: "order12345"
+ *                     shipping_Address:
+ *                       type: string
+ *                       description: Shipping address of the order.
+ *                       example: "123 Street Name, Industrial Area"
+ *                     billing_Address:
+ *                       type: string
+ *                       description: Billing address of the order.
+ *                       example: "456 Avenue Road, Business District"
+ *       '404':
+ *         description: Order not found - Invalid order ID.
+ *       '401':
+ *         description: Unauthorized
+ *       '500':
+ *         description: Internal Server Error
+ */
+
 route.get(
   "/get-stores-executive-order/:orderId",
   async (req: Request, res: Response, next: NextFunction) => {
@@ -100,6 +507,104 @@ route.get(
     }
   }
 );
+/**
+ * @swagger
+ * /executive/search-stores-executive-orders:
+ *   get:
+ *     summary: Search orders assigned to a store executive
+ *     tags:
+ *       - Stores-Executives
+ *     description: Retrieves orders assigned to a store executive filtered by a specified time period, date range, or order ID.
+ *     parameters:
+ *       - in: query
+ *         name: options
+ *         schema:
+ *           type: string
+ *           enum: [today, week, month]
+ *         required: false
+ *         description: Filter orders by a specific time period (`today`, `week`, or `month`).
+ *       - in: query
+ *         name: from
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         required: false
+ *         description: Start date of the date range (e.g., 2024-12-01T00:00:00.000Z).
+ *       - in: query
+ *         name: to
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         required: false
+ *         description: End date of the date range (e.g., 2024-12-31T23:59:59.000Z).
+ *       - in: query
+ *         name: orderId
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Filter orders by a partial match on the order ID.
+ *       - in: header
+ *         name: Authorization
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Bearer token for authentication.
+ *     responses:
+ *       '200':
+ *         description: Successfully fetched orders matching the criteria.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               description: List of orders matching the specified criteria.
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: Store-Executive-Order relation ID.
+ *                     example: "rel12345"
+ *                   storesExecutivesId:
+ *                     type: string
+ *                     description: ID of the store executive.
+ *                     example: "exec56789"
+ *                   isActive:
+ *                     type: boolean
+ *                     description: Indicates whether the relation is active.
+ *                     example: true
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                     description: Timestamp of when the relation was created.
+ *                     example: "2024-12-20T10:00:00.000Z"
+ *                   updatedAt:
+ *                     type: string
+ *                     format: date-time
+ *                     description: Timestamp of when the relation was last updated.
+ *                     example: "2024-12-20T12:00:00.000Z"
+ *                   orders:
+ *                     type: object
+ *                     description: Details of the associated order.
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         description: Order ID.
+ *                         example: "order12345"
+ *                       shipping_Address:
+ *                         type: string
+ *                         description: Shipping address of the order.
+ *                         example: "123 Street Name, Industrial Area"
+ *                       billing_Address:
+ *                         type: string
+ *                         description: Billing address of the order.
+ *                         example: "456 Avenue Road, Business District"
+ *       '400':
+ *         description: Bad Request - Invalid query parameters.
+ *       '401':
+ *         description: Unauthorized.
+ *       '500':
+ *         description: Internal Server Error.
+ */
 
 route.get(
   "/search-stores-executive-orders",
@@ -122,6 +627,75 @@ route.get(
   }
 );
 
+/**
+ * @swagger
+ * /executive/scan-product:
+ *   post:
+ *     summary: Scan a product at different stages of processing
+ *     tags:
+ *       - utils
+ *     description: Allows different roles (e.g., Stores Executive, Winding Executive, Assembly Executive, etc.) to scan products during various stages of processing.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               productId:
+ *                 type: string
+ *                 description: The ID of the product being scanned.
+ *                 example: "prod12345"
+ *               unitUniqueId:
+ *                 type: string
+ *                 description: Unique ID of the unit scanning the product.
+ *                 example: "unit56789"
+ *               current:
+ *                 type: number
+ *                 description: Current value (if applicable).
+ *                 example: 10.5
+ *               motorHp:
+ *                 type: number
+ *                 description: Motor horsepower (if applicable).
+ *                 example: 15
+ *               headSize:
+ *                 type: number
+ *                 description: Head size (if applicable).
+ *                 example: 25
+ *               productName:
+ *                 type: string
+ *                 description: Name of the product.
+ *                 example: "Solar Pump"
+ *               totalScanned:
+ *                 type: number
+ *                 description: The total number of scanned products.
+ *                 example: 5
+ *               netQuantity:
+ *                 type: number
+ *                 description: The total required quantity of the product.
+ *                 example: 10
+ *     responses:
+ *       '200':
+ *         description: Successfully scanned the product
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message
+ *                   example: "Product scanned successfully by Stores team"
+ *       '400':
+ *         description: Bad Request - Invalid input data or product scanning limit reached
+ *       '401':
+ *         description: Unauthorized
+ *       '404':
+ *         description: Product not found
+ *       '500':
+ *         description: Internal Server Error
+ */
+
 route.post(
   "/scan-product",
   async (req: Request, res: Response, next: NextFunction) => {
@@ -129,6 +703,21 @@ route.post(
       const { userRole } = (req as any).user;
       const data = req.body;
       res.status(StatusCodes.OK).send(await scannedProducts(userRole, data));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+route.get(
+  "/get-customers-rejected-orders",
+  ensureSalesExecutive,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { salesExcecutiveId } = (req as any).user;
+      res
+        .status(StatusCodes.OK)
+        .send(await getCustomersRejectedOrders(salesExcecutiveId));
     } catch (error) {
       next(error);
     }

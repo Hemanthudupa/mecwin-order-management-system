@@ -8,6 +8,7 @@ import { Distributor } from "./model";
 import { orderDetails as oDetails } from "./validation";
 import { SalesExce_Order_Relation } from "../executives/sales-exe-orders-relation-model";
 import { tranform } from "../utils/transfroms";
+import { order_status, sales_negotiation_status } from "../utils/constants";
 
 export async function addProductsToCart(
   productId: any,
@@ -183,6 +184,7 @@ export async function placeCartOrders(
             where: { id: ele.productId as any },
           })
         )?.dataValues.price! * ele.quantity;
+      orderTemp.order_status = [order_status.submitted];
       orders.push(orderTemp);
     }
 
@@ -220,7 +222,10 @@ export async function placeCartOrders(
 export async function getAllNegotiatedOrders(customerId: string) {
   try {
     return await Order.findAll({
-      where: { customerId, sales_negotiation_status: "PENDING ACCEPTANCE" },
+      where: {
+        customerId,
+        sales_negotiation_status: sales_negotiation_status.pending_acceptance,
+      },
     });
   } catch (error) {
     throw new APIError((error as APIError).message, (error as APIError).code);
@@ -228,27 +233,38 @@ export async function getAllNegotiatedOrders(customerId: string) {
 }
 
 export async function acceptNegotiatedOrder(orderId: string) {
+  const transaction = await sequelize.transaction();
   try {
     const order = await Order.findOne({
-      where: { id: orderId },
+      where: { id: orderId, approved_by_customer: false },
+      transaction,
     });
-    if (!order) throw new APIError(" invalid order id ", " INVALID ID ");
-    order.sales_negotiation_status = "NEGOTIATED";
-    await order.save();
+    if (!order)
+      throw new APIError(
+        " invalid order id  or order already accepted by customer ",
+        " INVALID ID "
+      );
+    order.sales_negotiation_status = sales_negotiation_status.negotiated;
+    order.approved_by_customer = true;
+
+    await order.save({ transaction });
     const salesOrd = await SalesExce_Order_Relation.findOne({
       where: {
         orderId,
       },
+      transaction,
     });
     if (!salesOrd) throw new APIError(" invalid order id ", " INVALID ID ");
 
     salesOrd.isActive = false;
 
-    await salesOrd.save();
+    await salesOrd.save({ transaction });
+    await transaction.commit();
     return {
       message: " customer happy with the negotiated money ",
     };
   } catch (error) {
+    await transaction.rollback();
     throw new APIError((error as APIError).message, (error as APIError).code);
   }
 }
@@ -269,6 +285,32 @@ export async function getProductByIdImages(product_image: string) {
       product = data;
     }
     return product;
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function rejectNegotiatedOrder(id: string) {
+  try {
+    const order = await Order.findOne({
+      where: {
+        id,
+        sales_negotiation_status: {
+          [Op.not]: sales_negotiation_status.rejected,
+        },
+        approved_by_customer: false,
+      },
+    });
+    if (!order)
+      throw new APIError(
+        " invalid order id or order already rejected by customer ",
+        " INVALID ID "
+      );
+    order.set("sales_negotiation_status", sales_negotiation_status.rejected);
+    await order.save();
+    return {
+      message: " negotiated  order rejected successfully by customer ",
+    };
   } catch (error) {
     throw new APIError((error as APIError).message, (error as APIError).code);
   }

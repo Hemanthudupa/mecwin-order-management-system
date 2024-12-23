@@ -44,6 +44,7 @@ export async function login(
         " INVALID INPUTS "
       );
     }
+    console.log(where);
     const user = await User.findOne({ where });
     console.log(user);
     if (!user) {

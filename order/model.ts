@@ -17,6 +17,7 @@ import { Distributor } from "../distributor/model";
 import { Product } from "../products/model";
 import sequelize from "../database";
 import { Executive } from "../executives/model";
+import { AdvanceAmt } from "../advance_amt/model";
 
 export class Order extends Model<
   InferAttributes<Order>,
@@ -142,7 +143,11 @@ Order.init(
       type: ARRAY(STRING),
     },
     payment_terms: {
-      type: STRING,
+      type: UUID,
+      references: {
+        model: AdvanceAmt,
+        key: "id",
+      },
     },
     product_status: {
       type: ARRAY(STRING),

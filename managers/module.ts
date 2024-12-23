@@ -14,11 +14,19 @@ import {
 } from "./validation";
 import { object } from "joi";
 import { StoresExe_Order_Relation } from "../executives/stores-exe-orders-relation-model";
+import { order_status, sales_negotiation_status } from "../utils/constants";
+import sequelize from "../database";
 
-export async function getOrdersSales(managerId: string, userId: string) {
+export async function getOrdersSales(
+  managerId: string,
+  userId: string,
+  page: number,
+  pageSize: number
+) {
   try {
     const manager: any = await Manager.findOne({ where: { id: managerId } });
-
+    let limit = pageSize;
+    let offset = (page - 1) * pageSize;
     const orderDetails = await Order.findAll({
       attributes: ["id", "shipping_Address"],
       where: {
@@ -40,6 +48,8 @@ export async function getOrdersSales(managerId: string, userId: string) {
           as: "products",
         },
       ],
+      limit,
+      offset,
     });
 
     return orderDetails;
@@ -68,21 +78,24 @@ export async function assignSalesExecutive(
   salesExecutivesId: any,
   orderId: any
 ) {
+  const transaction = await sequelize.transaction();
   try {
     const validatedSalesExecutive =
       await validatorAssignSalesExecutor.validateAsync({
         salesExecutivesId,
         orderId,
       });
-    const order: any = await Order.findOne({
+    const order = await Order.findOne({
       where: {
         id: validatedSalesExecutive.orderId,
       },
+      transaction,
     });
     const executive: any = await Executive.findOne({
       where: {
         id: validatedSalesExecutive.salesExecutivesId,
       },
+      transaction,
     });
     if (!order) {
       throw new APIError("  invalid order id ", " INVALID ID ");
@@ -91,15 +104,28 @@ export async function assignSalesExecutive(
       throw new APIError("  invalid executive id ", " INVALID ID ");
     }
 
-    const salesExe_order = await SalesExce_Order_Relation.create({
-      salesExecutivesId: executive.id,
-      orderId: order.id,
-    });
+    const salesExe_order = await SalesExce_Order_Relation.create(
+      {
+        salesExecutivesId: executive.id,
+        orderId: order.id as any,
+      },
+      { transaction }
+    );
+    order.order_status = new Array(
+      ...order.order_status,
+      order_status.inProgress
+    );
+
+    const orders = await order.save({ logging: console.log });
+    console.log(orders, " is the orders  ");
+    await transaction.commit();
     return {
       message: " successfully  sales executive assigned to an order ",
       salesExe_order,
+      orders,
     };
   } catch (error) {
+    await transaction.rollback();
     throw new APIError((error as APIError).message, (error as APIError).code);
   }
 }
@@ -325,7 +351,7 @@ export async function assignStoresExecutiveOrder(data: any) {
   const validatedData = await validateAssignStoresExecutive.validateAsync(data);
   const order = await Order.findOne({ where: { id: validatedData.orderId } });
   if (!order) throw new APIError("invlaid order id ", "INVALID ORDER ID");
-  order.stores_status = "ASSIGNED";
+  order.stores_status = sales_negotiation_status.assigned;
   await order.save();
 
   console.log(validatedData);

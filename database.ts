@@ -22,7 +22,8 @@ const sequelize = new Sequelize({
     min: 0,
     idle: 10000,
   },
-  logging: console.log,
+  logging: false,
+  port: 5433,
 });
 
 export async function connectToDataBase() {
@@ -41,7 +42,7 @@ export async function connectToDataBase() {
 export async function runAllMigrationFiles() {
   try {
     const umzug = new Umzug({
-      logger: console,
+      logger: undefined,
       context: sequelize,
       storage: new SequelizeStorage({
         sequelize,

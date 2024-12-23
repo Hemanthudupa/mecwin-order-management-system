@@ -9,12 +9,15 @@ import { StoresExe_Order_Relation } from "./stores-exe-orders-relation-model";
 import { UserRole } from "../roles/model";
 import { ScannedProducts } from "../scanned_products/model";
 import { Product } from "../products/model";
+import { sales_negotiation_status } from "../utils/constants";
 
 export async function getSalesExecutiveOrders(
   id: string,
   from: string,
   to: string,
-  time: string
+  time: string,
+  page: number,
+  pageSize: number
 ) {
   try {
     const whereCondition: any = {};
@@ -49,6 +52,9 @@ export async function getSalesExecutiveOrders(
         );
     }
 
+    let limit = pageSize;
+    let offset = (page - 1) * pageSize;
+
     const salesExe = await SalesExce_Order_Relation.findAll({
       where: {
         isActive: true,
@@ -59,6 +65,8 @@ export async function getSalesExecutiveOrders(
         model: Order,
         as: "orders",
       },
+      limit,
+      offset,
     });
 
     // return await Order.findAll({
@@ -80,8 +88,9 @@ export async function updateOrderDetails(info: any) {
     const order = await Order.findOne({
       where: { id: validatedOrderDetials.orderId },
     });
+    console.log(validatedOrderDetials.orderId);
     if (!order) throw new APIError("invalid order id", " INVALID ID ");
-    order.advanceAmount = validatedOrderDetials.advanceAmount;
+    order.payment_terms = validatedOrderDetials.payment_terms;
     order.diameter = validatedOrderDetials.diameter;
     order.headSize = validatedOrderDetials.headSize;
     order.motorType = validatedOrderDetials.motorType;
@@ -92,7 +101,8 @@ export async function updateOrderDetails(info: any) {
     order.warranty = validatedOrderDetials.warranty;
     order.transportation = validatedOrderDetials.transportation;
     order.approved_by_sales = true;
-    order.sales_negotiation_status = "PENDING ACCEPTANCE";
+    order.sales_negotiation_status =
+      sales_negotiation_status.pending_acceptance;
     await order.save();
 
     return { message: " order updated successfully" };
@@ -387,6 +397,32 @@ export async function scannedProducts(userRole: string, data: any) {
         return { message: "successfully  winding team scanned the  product " };
       });
     }
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function getCustomersRejectedOrders(salesExeId: string) {
+  try {
+    const order = await SalesExce_Order_Relation.findOne({
+      where: {
+        salesExecutivesId: salesExeId,
+        isActive: true,
+      },
+
+      include: {
+        model: Order,
+        as: "orders",
+        where: {
+          sales_negotiation_status: sales_negotiation_status.rejected,
+        },
+      },
+    });
+
+    return {
+      message: " successfully fetched rejected orders ",
+      salesExeOrders: order,
+    };
   } catch (error) {
     throw new APIError((error as APIError).message, (error as APIError).code);
   }

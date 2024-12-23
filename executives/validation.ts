@@ -70,10 +70,16 @@ export const validateOrderUpdateDetails = Joi.object({
       "any.only": "Transportation must be 'By Road', 'By Air', or 'By Sea'",
       "any.required": "Transportation is required",
     }),
-  advanceAmount: Joi.string().optional().messages({
-    "string.base": " advanceAmount should be valid option of string ",
-    "any.required": " advanceAmount  is required ",
-  }),
+  payment_terms: Joi.string()
+    .guid({
+      version: "uuidv4",
+    })
+    .required()
+    .messages({
+      "guid.base": "payment_terms should be valid UUID  ",
+      "string.base": " payment_terms should be valid option of string ",
+      "any.required": " payment_terms  is required ",
+    }),
 });
 
 export const validateScanningData = Joi.object({
