@@ -3,13 +3,18 @@ import { Order } from "../order/model";
 import { APIError } from "../utils/Error";
 import { SalesExce_Order_Relation } from "./sales-exe-orders-relation-model";
 import { Executive } from "./model";
-import { validateOrderUpdateDetails, validateScanningData } from "./validation";
+import {
+  validateLineItemsData,
+  validateOrderUpdateDetails,
+  validateScanningData,
+} from "./validation";
 import sequelize from "../database";
 import { StoresExe_Order_Relation } from "./stores-exe-orders-relation-model";
 import { UserRole } from "../roles/model";
 import { ScannedProducts } from "../scanned_products/model";
 import { Product } from "../products/model";
 import { sales_negotiation_status } from "../utils/constants";
+import { LineItems } from "../line_items/model";
 
 export async function getSalesExecutiveOrders(
   id: string,
@@ -423,6 +428,55 @@ export async function getCustomersRejectedOrders(salesExeId: string) {
       message: " successfully fetched rejected orders ",
       salesExeOrders: order,
     };
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function addLineItems(data: any[]) {
+  const transaction = await sequelize.transaction();
+  try {
+    if (Array.isArray(data) && data.length > 0) {
+      for (let ele of data) {
+        const validatedData = await validateLineItemsData.validateAsync(ele);
+      }
+
+      const order = await Order.findOne({
+        where: { id: data[0].orderId },
+      });
+
+      if (!order) throw new APIError(" invalid order id ", " INVLAID ID ");
+      const finalData = data.reduce(
+        (acc, ele) => {
+          acc.price += Number(ele.price);
+          acc.quantity += Number(ele.quantity);
+          return acc;
+        },
+        {
+          price: 0,
+          quantity: 0,
+        }
+      );
+
+      const lineItems = await LineItems.bulkCreate(data, {
+        transaction,
+      });
+
+      order!.quantity = finalData.quantity;
+      order!.price = finalData.price;
+      order!.sales_negotiation_status =
+        sales_negotiation_status.pending_acceptance;
+      order!.approved_by_sales = true;
+      await order?.save({ transaction });
+      await transaction.commit();
+      return { message: " successfully created line items " };
+    } else {
+      await transaction.rollback();
+      throw new APIError(
+        " input data should be an array ",
+        " invlaid data type "
+      );
+    }
   } catch (error) {
     throw new APIError((error as APIError).message, (error as APIError).code);
   }

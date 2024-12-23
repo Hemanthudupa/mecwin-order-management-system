@@ -18,13 +18,18 @@ export async function getAllOrders() {
         [Op.or]: [
           { payment_terms: advanceAmt?.id },
           {
-            payment_terms: {
-              [Op.not]: advanceAmt?.id,
-            },
-            approved_by_accounts: true,
+            [Op.and]: [
+              { approved_by_accounts: true },
+              {
+                payment_terms: {
+                  [Op.not]: advanceAmt?.id,
+                },
+              },
+            ],
           },
         ],
       },
+      //   logging: true,
     });
     return orders;
   } catch (error) {

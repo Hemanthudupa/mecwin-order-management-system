@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { StatusCodes } from "http-status-codes";
 import {
+  addLineItems,
   getAllStoresExecutiveOrders,
   getCustomersRejectedOrders,
   getOrdersByDays,
@@ -127,15 +128,14 @@ route.get(
     }
   }
 );
-
 /**
  * @swagger
- * /executive/update-order-details:
+ * /update-order-details:
  *   patch:
  *     summary: Update order details
  *     tags:
- *       - Sales-Executives
- *     description: Updates the details of an existing order and marks it as approved by sales.
+ *       - Sales-Executive
+ *     description: Updates the details of an order and marks it as approved by the sales executive.
  *     requestBody:
  *       required: true
  *       content:
@@ -145,48 +145,48 @@ route.get(
  *             properties:
  *               orderId:
  *                 type: string
- *                 description: The ID of the order to update
- *                 example: "order12345"
- *               advanceAmount:
- *                 type: boolean
- *                 description: Whether advance payment has been made
- *                 example: true
+ *                 description: The ID of the order to be updated
+ *                 example: "12345"
+ *               payment_terms:
+ *                 type: string
+ *                 description: Updated payment terms for the order
+ *                 example: "Net 30"
  *               diameter:
  *                 type: number
- *                 description: Diameter value for the order
- *                 example: 10.5
+ *                 description: Updated diameter value
+ *                 example: 15
  *               headSize:
  *                 type: number
- *                 description: Head size for the order
+ *                 description: Updated head size value
  *                 example: 20
  *               motorType:
  *                 type: string
- *                 description: Motor type for the order
- *                 example: "DC Motor"
+ *                 description: Updated motor type
+ *                 example: "AC Motor"
  *               current:
  *                 type: number
- *                 description: Current value for the order
- *                 example: 15
+ *                 description: Updated current value
+ *                 example: 5
  *               pannelType:
  *                 type: string
- *                 description: Panel type for the order
+ *                 description: Updated panel type
  *                 example: "Solar Panel"
  *               spd:
  *                 type: string
- *                 description: SPD value for the order
- *                 example: "High Speed"
+ *                 description: Updated SPD (Surge Protection Device) details
+ *                 example: "Type II"
  *               data:
  *                 type: string
- *                 description: Additional data related to the order
- *                 example: "Extra requirements"
+ *                 description: Additional order data
+ *                 example: "Extra specifications here"
  *               warranty:
  *                 type: string
  *                 description: Warranty information
- *                 example: "1 Year"
+ *                 example: "2 years"
  *               transportation:
  *                 type: string
- *                 description: Transportation method
- *                 example: "Truck"
+ *                 description: Updated transportation details
+ *                 example: "By Road"
  *     responses:
  *       '200':
  *         description: Successfully updated the order details
@@ -197,14 +197,13 @@ route.get(
  *               properties:
  *                 message:
  *                   type: string
- *                   description: Success message
- *                   example: "Order updated successfully"
+ *                   example: "order updated successfully"
  *       '400':
- *         description: Bad Request - Invalid input data
+ *         description: Bad Request - Invalid or missing details
  *       '404':
- *         description: Invalid order ID
+ *         description: Not Found - Order ID does not exist
  *       '500':
- *         description: Internal Server Error
+ *         description: Internal Server Error - Failed to update the order
  */
 
 route.patch(
@@ -708,6 +707,65 @@ route.post(
     }
   }
 );
+/**
+ * @swagger
+ * /get-customers-rejected-orders:
+ *   get:
+ *     summary: Get customers' rejected orders
+ *     tags:
+ *       - Sales-Executive
+ *     description: Retrieves all rejected orders associated with the sales executive.
+ *     responses:
+ *       '200':
+ *         description: Successfully fetched rejected orders
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "successfully fetched rejected orders"
+ *                 salesExeOrders:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       description: The ID of the sales executive order relation
+ *                       example: "123e4567-e89b-12d3-a456-426614174000"
+ *                     orders:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                             description: The order ID
+ *                             example: "12345"
+ *                           sales_negotiation_status:
+ *                             type: string
+ *                             description: The negotiation status of the order
+ *                             example: "rejected"
+ *                           quantity:
+ *                             type: number
+ *                             description: Quantity of items in the order
+ *                             example: 10
+ *                           price:
+ *                             type: number
+ *                             description: Total price of the order
+ *                             example: 1500
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             description: The creation timestamp of the order
+ *                             example: "2024-01-01T12:00:00Z"
+ *       '400':
+ *         description: Bad Request - Invalid or missing parameters
+ *       '404':
+ *         description: Not Found - No orders found for the sales executive
+ *       '500':
+ *         description: Internal Server Error - Failed to fetch orders
+ */
 
 route.get(
   "/get-customers-rejected-orders",
@@ -718,6 +776,108 @@ route.get(
       res
         .status(StatusCodes.OK)
         .send(await getCustomersRejectedOrders(salesExcecutiveId));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /add-line-items:
+ *   post:
+ *     summary: Add line items to an order
+ *     tags:
+ *       - Sales-Executive
+ *     description: Adds multiple line items to an order. The request body must be an array of objects, where each object represents a line item.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               type: object
+ *               properties:
+ *                 orderId:
+ *                   type: string
+ *                   format: uuid
+ *                   description: The GUID of the order
+ *                   example: "123e4567-e89b-12d3-a456-426614174000"
+ *                 uom:
+ *                   type: string
+ *                   description: Unit of measure
+ *                   example: "kg"
+ *                 motor_type:
+ *                   type: string
+ *                   description: Motor type
+ *                   example: "AC Motor"
+ *                 headSize:
+ *                   type: string
+ *                   description: Head size
+ *                   example: "15"
+ *                 current:
+ *                   type: string
+ *                   description: Current rating
+ *                   example: "5A"
+ *                 diameter:
+ *                   type: string
+ *                   description: Diameter size
+ *                   example: "20"
+ *                 pannel_type:
+ *                   type: string
+ *                   description: Panel type
+ *                   example: "Solar Panel"
+ *                 spd:
+ *                   type: boolean
+ *                   description: Indicates if SPD (Surge Protection Device) is included
+ *                   example: true
+ *                 data:
+ *                   type: boolean
+ *                   description: Indicates if additional data is included
+ *                   example: false
+ *                 warranty:
+ *                   type: boolean
+ *                   description: Indicates if the item includes warranty
+ *                   example: true
+ *                 transportation:
+ *                   type: boolean
+ *                   description: Indicates if transportation is included
+ *                   example: true
+ *                 price:
+ *                   type: number
+ *                   description: Price of the line item
+ *                   example: 500
+ *                 quantity:
+ *                   type: number
+ *                   description: Quantity of the line item
+ *                   example: 3
+ *     responses:
+ *       '201':
+ *         description: Line items successfully added to the order
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "successfully created line items"
+ *       '400':
+ *         description: Bad Request - Invalid or missing input data
+ *       '404':
+ *         description: Not Found - Order ID does not exist
+ *       '500':
+ *         description: Internal Server Error - Failed to add line items
+ */
+
+route.post(
+  "/add-line-items",
+  ensureSalesExecutive,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = req.body;
+      res.status(StatusCodes.CREATED).send(await addLineItems(data));
     } catch (error) {
       next(error);
     }

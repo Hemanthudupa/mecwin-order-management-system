@@ -36,3 +36,10 @@ export const sales_negotiation_status = {
   rejected: "REJECTED",
   pending_acceptance: "PENDING ACCEPTANCE",
 };
+
+// export const  = {
+//   assigned: "ASSIGNED",
+//   negotiated: "NEGOTIATED",
+//   rejected: "REJECTED",
+//   pending_acceptance: "PENDING ACCEPTANCE",
+// };

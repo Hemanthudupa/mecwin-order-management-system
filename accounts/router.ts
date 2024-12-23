@@ -2,8 +2,9 @@ import { NextFunction, Request, Response, Router } from "express";
 import { StatusCodes } from "http-status-codes";
 import { getAdvanceAmount } from "../admin/module";
 import { accountsApproveOrder, getAdvanceAmountPayedOrders } from "./module";
+import { ensureAccounts } from "../utils/authentication";
 const route = Router();
-
+route.use(ensureAccounts);
 /**
  * @swagger
  * /accounts/get-advance-amt-payed-orders:

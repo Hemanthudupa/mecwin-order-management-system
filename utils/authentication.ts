@@ -128,7 +128,7 @@ export function generateJWTToken(user: User) {
     throw new APIError((error as APIError).message, (error as APIError).code);
   }
 }
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, raw, Request, Response } from "express";
 import { MANAGERS_ROLES, USER_ROLES } from "./constants";
 import { UserRole } from "../roles/model";
 import { Distributor } from "../distributor/model";
@@ -364,6 +364,50 @@ export async function ensureStoresExecutive(
       throw new APIError(
         " only stores executives can perform this action ",
         " INVALID USER ROLE "
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function ensureAccounts(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { userRole, id } = (req as any).user;
+    if (userRole == "ACCOUNTS") {
+      const accId = await Manager.findOne({ where: { userId: id }, raw: true });
+      (req as any).accountsId = accId!.id;
+      next();
+    } else {
+      throw new APIError(
+        " only accounts team can perform this action ",
+        " INVLAID ROLE "
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function ensurePlanning(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { userRole, id } = (req as any).user;
+    if (userRole == "PLANNING") {
+      const accId = await Manager.findOne({ where: { userId: id }, raw: true });
+      (req as any).accountsId = accId!.id;
+      next();
+    } else {
+      throw new APIError(
+        " only planning team can perform this action ",
+        " INVLAID ROLE "
       );
     }
   } catch (error) {
