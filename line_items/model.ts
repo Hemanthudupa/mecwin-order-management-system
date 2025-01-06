@@ -2,10 +2,12 @@ import {
   BOOLEAN,
   CreationOptional,
   DATE,
+  DOUBLE,
   ForeignKey,
   InferAttributes,
   InferCreationAttributes,
   Model,
+  NUMBER,
   STRING,
   UUID,
   UUIDV4,
@@ -30,6 +32,8 @@ export class LineItems extends Model<
   declare data: CreationOptional<boolean>;
   declare warranty: CreationOptional<boolean>;
   declare transportation: CreationOptional<boolean>;
+  declare deadLine: CreationOptional<string>;
+  declare quantity: CreationOptional<number>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -64,14 +68,18 @@ LineItems.init(
     headSize: { type: STRING },
     motor_type: { type: STRING },
     pannel_type: { type: STRING },
-    price: { type: STRING },
+    price: { type: DOUBLE },
+    quantity: { type: NUMBER },
     uom: { type: STRING },
     orderId: {
       type: UUID,
       references: {
         model: Order,
-        key: "id",
+        key: "orderId",
       },
+    },
+    deadLine: {
+      type: DATE,
     },
   },
   {

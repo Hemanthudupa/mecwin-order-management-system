@@ -467,6 +467,42 @@ route.patch(
   }
 );
 
+/**
+ * @swagger
+ * /distributor/reject-negotiated-order/{orderId}:
+ *   patch:
+ *     summary: Reject a negotiated order
+ *     tags:
+ *       - Distributor
+ *     description: Allows a customer to reject a negotiated order. The order must not already be rejected and must not be approved by the customer.
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The unique identifier of the order to reject
+ *         example: "123e4567-e89b-12d3-a456-426614174000"
+ *     responses:
+ *       '200':
+ *         description: Successfully rejected the negotiated order
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "negotiated order rejected successfully by customer"
+ *       '400':
+ *         description: Bad Request - Invalid or missing order ID
+ *       '404':
+ *         description: Not Found - Order ID does not exist or order already rejected
+ *       '500':
+ *         description: Internal Server Error - Failed to reject the order
+ */
+
 route.patch(
   "/reject-negotiated-order/:orderId",
   async (req: Request, res: Response, next: NextFunction) => {

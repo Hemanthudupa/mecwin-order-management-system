@@ -2,6 +2,7 @@ import {
   ARRAY,
   BOOLEAN,
   CreationOptional,
+  DataTypes,
   DATE,
   DOUBLE,
   ForeignKey,
@@ -18,6 +19,7 @@ import { Product } from "../products/model";
 import sequelize from "../database";
 import { Executive } from "../executives/model";
 import { AdvanceAmt } from "../advance_amt/model";
+import { LineItems } from "../line_items/model";
 
 export class Order extends Model<
   InferAttributes<Order>,
@@ -34,7 +36,7 @@ export class Order extends Model<
   declare remarks: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
-  declare deadLine: CreationOptional<string>;
+  declare deadLine: CreationOptional<Date>;
   declare advanceAmount: CreationOptional<boolean>;
   declare payment_terms: CreationOptional<string>;
   declare approved_by_sales: CreationOptional<boolean>;
@@ -59,6 +61,7 @@ export class Order extends Model<
   declare transportation: CreationOptional<string>;
   declare sales_negotiation_status: CreationOptional<string>;
   declare stores_status: CreationOptional<string>;
+  declare sap_reference_number: CreationOptional<string>;
 }
 
 Order.init(
@@ -92,6 +95,9 @@ Order.init(
     },
     updatedAt: {
       type: DATE,
+    },
+    sap_reference_number: {
+      type: STRING,
     },
     shipping_Address: {
       type: STRING,
@@ -133,7 +139,7 @@ Order.init(
       type: BOOLEAN,
     },
     deadLine: {
-      type: STRING,
+      type: DataTypes.DATE,
     },
     isActive: {
       type: BOOLEAN,
@@ -200,3 +206,7 @@ Order.belongsTo(Product, {
   foreignKey: "productId",
   as: "products",
 });
+
+Order.hasMany(LineItems, { foreignKey: "orderId", as: "order_Id" });
+
+LineItems.belongsTo(Order);

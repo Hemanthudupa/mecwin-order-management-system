@@ -436,9 +436,28 @@ export async function getCustomersRejectedOrders(salesExeId: string) {
 export async function addLineItems(data: any[]) {
   const transaction = await sequelize.transaction();
   try {
+    let maxDate: any = new Date(0);
+    let sap_reference_number = data[0].sap_reference_number;
+    let payment_terms = data[0].payment_terms;
     if (Array.isArray(data) && data.length > 0) {
       for (let ele of data) {
         const validatedData = await validateLineItemsData.validateAsync(ele);
+        // let newDate = new Date(validatedData.deadline);
+        // console.log(newDate, " is the new date ");
+        // if (
+        //   maxDate.getUTCDate() < newDate.getUTCDate() &&
+        //   maxDate.getUTCMonth() < newDate.getUTCMonth() &&
+        //   maxDate.getUTCFullYear() < newDate.getUTCFullYear() &&
+        //   maxDate.getUTCHours() < newDate.getUTCHours() &&
+        //   maxDate.getUTCSeconds() < newDate.getUTCSeconds() &&
+        //   maxDate.getUTCMilliseconds() < newDate.getUTCMilliseconds()
+        // ) {
+        //   maxDate = newDate;
+        //   console.log(newDate);
+        //   console.log(maxDate);
+        // } else {
+        //   console.log(" date is lesser than the expected ");
+        // }
       }
 
       const order = await Order.findOne({
@@ -467,6 +486,8 @@ export async function addLineItems(data: any[]) {
       order!.sales_negotiation_status =
         sales_negotiation_status.pending_acceptance;
       order!.approved_by_sales = true;
+      order!.sap_reference_number = sap_reference_number;
+      order!.payment_terms = payment_terms;
       await order?.save({ transaction });
       await transaction.commit();
       return { message: " successfully created line items " };

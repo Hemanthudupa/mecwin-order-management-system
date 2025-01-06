@@ -129,6 +129,20 @@ export const validateLineItemsData = Joi.object({
     "guid.base": " orderId should be an proper GUID id type ",
     "any.required": "orderId cannot be empty",
   }),
+  payment_terms: Joi.string()
+    .guid({
+      version: "uuidv4",
+    })
+    .required()
+    .messages({
+      "guid.base": "payment_terms should be valid UUID  ",
+      "string.base": " payment_terms should be valid option of string ",
+      "any.required": " payment_terms  is required ",
+    }),
+  sap_reference_number: Joi.string().required().messages({
+    "string.base": " sap reference is a required field ",
+    "any.required": " sap reference  is required ",
+  }),
   uom: Joi.string().required().messages({
     "string.base": " uom should be an proper string ",
     "any.required": " uom is requried field",
@@ -177,4 +191,8 @@ export const validateLineItemsData = Joi.object({
     "number.base": " quantity should be an proper number ",
     "any.required": " quantity is requried field",
   }),
+  // deadline: Joi.date().required().messages({
+  //   "date.base": " deadline should be an proper date type  ",
+  //   "any.required": " deadline is requried field",
+  // }),
 });

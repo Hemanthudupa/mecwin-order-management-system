@@ -135,7 +135,7 @@ route.get(
  *     summary: Update order details
  *     tags:
  *       - Sales-Executive
- *     description: Updates the details of an order and marks it as approved by the sales executive.
+ *     description: Updates the details of an order, including its attributes like payment terms, head size, motor type, and other optional properties. Marks the order as approved by sales and sets the sales negotiation status.
  *     requestBody:
  *       required: true
  *       content:
@@ -145,51 +145,25 @@ route.get(
  *             properties:
  *               orderId:
  *                 type: string
- *                 description: The ID of the order to be updated
- *                 example: "12345"
+ *                 format: uuid
+ *                 description: The unique identifier of the order to update
+ *                 example: "123e4567-e89b-12d3-a456-426614174000"
  *               payment_terms:
  *                 type: string
- *                 description: Updated payment terms for the order
- *                 example: "Net 30"
- *               diameter:
- *                 type: number
- *                 description: Updated diameter value
- *                 example: 15
- *               headSize:
- *                 type: number
- *                 description: Updated head size value
- *                 example: 20
- *               motorType:
+ *                 format: uuid
+ *                 description: Payment terms identifier
+ *                 example: "123e4567-e89b-12d3-a456-426614174001"
+ *               sap_reference_number:
  *                 type: string
- *                 description: Updated motor type
- *                 example: "AC Motor"
- *               current:
- *                 type: number
- *                 description: Updated current value
- *                 example: 5
- *               pannelType:
- *                 type: string
- *                 description: Updated panel type
- *                 example: "Solar Panel"
- *               spd:
- *                 type: string
- *                 description: Updated SPD (Surge Protection Device) details
- *                 example: "Type II"
- *               data:
- *                 type: string
- *                 description: Additional order data
- *                 example: "Extra specifications here"
- *               warranty:
- *                 type: string
- *                 description: Warranty information
- *                 example: "2 years"
- *               transportation:
- *                 type: string
- *                 description: Updated transportation details
- *                 example: "By Road"
+ *                 description: SAP reference number for the order
+ *                 example: "SAP123456"
+ *             required:
+ *               - orderId
+ *               - payment_terms
+ *               - sap_reference_number
  *     responses:
  *       '200':
- *         description: Successfully updated the order details
+ *         description: Order updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -199,9 +173,9 @@ route.get(
  *                   type: string
  *                   example: "order updated successfully"
  *       '400':
- *         description: Bad Request - Invalid or missing details
+ *         description: Bad Request - Validation errors or missing fields
  *       '404':
- *         description: Not Found - Order ID does not exist
+ *         description: Not Found - The order with the specified ID does not exist
  *       '500':
  *         description: Internal Server Error - Failed to update the order
  */
@@ -789,7 +763,7 @@ route.get(
  *     summary: Add line items to an order
  *     tags:
  *       - Sales-Executive
- *     description: Adds multiple line items to an order. The request body must be an array of objects, where each object represents a line item.
+ *     description: Adds multiple line items to an order, calculates the total price and quantity, and updates the order details including SAP reference number and payment terms.
  *     requestBody:
  *       required: true
  *       content:
@@ -802,32 +776,32 @@ route.get(
  *                 orderId:
  *                   type: string
  *                   format: uuid
- *                   description: The GUID of the order
- *                   example: "123e4567-e89b-12d3-a456-426614174000"
+ *                   description: The unique identifier of the order to which the line items belong
+ *                   example: "fe6d0842-c6b3-4304-969c-277c3b8e8c6d"
  *                 uom:
  *                   type: string
- *                   description: Unit of measure
- *                   example: "kg"
+ *                   description: Unit of measure for the item
+ *                   example: "order management"
  *                 motor_type:
  *                   type: string
- *                   description: Motor type
- *                   example: "AC Motor"
+ *                   description: Type of motor
+ *                   example: "AC"
  *                 headSize:
  *                   type: string
- *                   description: Head size
- *                   example: "15"
+ *                   description: Head size of the motor
+ *                   example: "100"
  *                 current:
  *                   type: string
- *                   description: Current rating
- *                   example: "5A"
+ *                   description: Current specification
+ *                   example: "100v"
  *                 diameter:
  *                   type: string
- *                   description: Diameter size
- *                   example: "20"
+ *                   description: Diameter of the item
+ *                   example: "100m"
  *                 pannel_type:
  *                   type: string
  *                   description: Panel type
- *                   example: "Solar Panel"
+ *                   example: "long"
  *                 spd:
  *                   type: boolean
  *                   description: Indicates if SPD (Surge Protection Device) is included
@@ -835,26 +809,40 @@ route.get(
  *                 data:
  *                   type: boolean
  *                   description: Indicates if additional data is included
- *                   example: false
+ *                   example: true
  *                 warranty:
  *                   type: boolean
- *                   description: Indicates if the item includes warranty
+ *                   description: Indicates if warranty is provided
  *                   example: true
  *                 transportation:
  *                   type: boolean
  *                   description: Indicates if transportation is included
  *                   example: true
  *                 price:
- *                   type: number
+ *                   type: string
  *                   description: Price of the line item
- *                   example: 500
+ *                   example: "90000"
  *                 quantity:
- *                   type: number
+ *                   type: string
  *                   description: Quantity of the line item
- *                   example: 3
+ *                   example: "100"
+ *                 deadline:
+ *                   type: string
+ *                   format: date
+ *                   description: Deadline for the order
+ *                   example: "2024-10-12"
+ *                 payment_terms:
+ *                   type: string
+ *                   format: uuid
+ *                   description: Payment terms identifier
+ *                   example: "2abfc2e9-3ae6-4e59-8dcd-4ff397dae474"
+ *                 sap_reference_number:
+ *                   type: string
+ *                   description: SAP reference number for the order
+ *                   example: "1231231234"
  *     responses:
  *       '201':
- *         description: Line items successfully added to the order
+ *         description: Line items successfully created and order updated
  *         content:
  *           application/json:
  *             schema:

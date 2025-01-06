@@ -225,6 +225,10 @@ export async function getAllNegotiatedOrders(customerId: string) {
       where: {
         customerId,
         sales_negotiation_status: sales_negotiation_status.pending_acceptance,
+        approved_by_planning: true,
+        deadLine: {
+          [Op.not]: null as any,
+        },
       },
     });
   } catch (error) {
@@ -307,6 +311,8 @@ export async function rejectNegotiatedOrder(id: string) {
         " INVALID ID "
       );
     order.set("sales_negotiation_status", sales_negotiation_status.rejected);
+    order.set("approved_by_planning", false);
+    order.set("deadLine", null as any);
     await order.save();
     return {
       message: " negotiated  order rejected successfully by customer ",

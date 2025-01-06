@@ -70,4 +70,7 @@ Manager.init(
   }
 );
 
-Manager.belongsTo(User);
+Manager.belongsTo(User, {
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});

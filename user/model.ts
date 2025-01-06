@@ -41,9 +41,15 @@ User.init(
     email: {
       type: DataTypes.STRING,
       unique: true,
+      validate: {
+        isEmail: true,
+      },
     },
     password: {
       type: DataTypes.STRING,
+      validate: {
+        len: [8, 12],
+      },
     },
     userRole: {
       type: DataTypes.UUID,
@@ -74,4 +80,6 @@ User.init(
 User.belongsTo(UserRole, {
   foreignKey: "userRole",
   as: "roleId",
+  onUpdate: "CASCADE",
+  onDelete: "CASCADE",
 });

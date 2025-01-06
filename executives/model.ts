@@ -74,5 +74,8 @@ Executive.init(
   }
 );
 
-Executive.belongsTo(User);
+Executive.belongsTo(User, {
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
 Executive.belongsTo(Manager);

@@ -391,6 +391,36 @@ app.get(
   }
 );
 
+/**
+ * @swagger
+ * /user/get-advance-amount:
+ *   get:
+ *     summary: Retrieve all advance amounts
+ *     tags:
+ *       - User
+ *     description: Fetches a list of all available advance amounts from the database.
+ *     responses:
+ *       '200':
+ *         description: Successfully retrieved advance amounts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: The unique identifier for the advance amount record
+ *                     example: "123e4567-e89b-12d3-a456-426614174000"
+ *                   advanceAmt:
+ *                     type: string
+ *                     description: The advance amount value
+ *                     example: "5000"
+ *       '500':
+ *         description: Internal Server Error - Failed to fetch advance amounts
+ */
+
 app.get(
   "/get-advance-amount",
   async (req: Request, res: Response, next: NextFunction) => {

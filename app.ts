@@ -20,10 +20,20 @@ import planning from "./planning/router";
 
 import hpp from "hpp";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimiter from "express-rate-limit";
 // const swaggerDocument = yaml.load("./utils/swagger.yaml");
-
+app.use(helmet());
 app.use(cors());
 app.use(hpp());
+app.use(
+  rateLimiter({
+    limit: 50,
+    message:
+      " Too many requests from this device , please try again after a minute ",
+    windowMs: 60 * 1000, // 1 min
+  })
+);
 const options: SwaggerOptions = {
   definition: {
     openapi: "3.1.0",
@@ -61,6 +71,7 @@ const options: SwaggerOptions = {
     "./managers/router.ts",
     "./executives/router.ts",
     "./accounts/router.ts",
+    "./planning/router.ts",
   ],
 };
 
