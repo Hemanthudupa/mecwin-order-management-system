@@ -72,6 +72,13 @@ export async function login(
   }
 }
 
+export async function forgotPassward(data: any) {
+  try {
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
 export async function createDistributor(data: distributor) {
   const transaction = await sequelize.transaction();
 

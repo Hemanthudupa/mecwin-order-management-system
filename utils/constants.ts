@@ -35,7 +35,7 @@ export const product_status = {
   to_be_processed: "To Be Processed",
   assigned: "Assigned",
   negotiation: "Negotiation",
-  PendingAcceptance: "PENDING ACCEPTANCE",
+  PendingAcceptance: "Pending Acceptance",
   OrderConfirmed: "Order Confirmed",
   pending_approval: "Pending Approval",
   pending_payment_confirmantion: "Pending Payment Confirmantion",

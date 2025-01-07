@@ -195,4 +195,9 @@ export const validateLineItemsData = Joi.object({
   //   "date.base": " deadline should be an proper date type  ",
   //   "any.required": " deadline is requried field",
   // }),
+
+  advanceAmount: Joi.number().required().messages({
+    "number.base": " advanceAmount should be an proper number ",
+    "any.required": " advanceAmount is requried field",
+  }),
 });

@@ -492,7 +492,7 @@ export async function addLineItems(data: any[]) {
       order!.approved_by_sales = true;
       let orderStatus = [...order.order_status];
       orderStatus.push(order_status.PendingAcceptance);
-
+      order.set("advanceAmount", data[0].advanceAmount);
       order.set("order_status", orderStatus);
 
       let productStatus: any[] = [...order.product_status];

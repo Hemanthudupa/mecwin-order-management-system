@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import {
   addUserRole,
   createDistributor,
+  forgotPassward,
   getAllProducts,
   getProductById,
   login,
@@ -74,6 +75,18 @@ app.post("/login", async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 });
+
+app.post(
+  "/forgot-passward",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = req.body;
+      res.status(StatusCodes.OK).send(await forgotPassward(data));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 /**
  * @swagger

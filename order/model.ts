@@ -37,7 +37,7 @@ export class Order extends Model<
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deadLine: CreationOptional<Date>;
-  declare advanceAmount: CreationOptional<boolean>;
+  declare advanceAmount: CreationOptional<number>;
   declare payment_terms: CreationOptional<string>;
   declare approved_by_sales: CreationOptional<boolean>;
   declare approved_by_accounts: CreationOptional<boolean>;
@@ -121,7 +121,7 @@ Order.init(
       type: STRING,
     },
     advanceAmount: {
-      type: BOOLEAN,
+      type: DOUBLE,
     },
     approved_by_accounts: {
       type: BOOLEAN,

@@ -201,7 +201,7 @@ route.patch(
  *   get:
  *     summary: Get orders filtered by date or ID
  *     tags:
- *       - Sales-Executives
+ *       - Sales-Executive
  *     description: Retrieves orders filtered by a specified date range, time period (today, week, or month), or by order ID.
  *     parameters:
  *       - in: query
@@ -842,6 +842,10 @@ route.get(
  *                   type: string
  *                   description: SAP reference number for the order
  *                   example: "1231231234"
+ *                 advanceAmount:
+ *                   type: number
+ *                   description: Advance amount for the order
+ *                   example: 10000
  *     responses:
  *       '201':
  *         description: Line items successfully created and order updated
@@ -874,6 +878,150 @@ route.post(
   }
 );
 
+/**
+ * @swagger
+ * /get-customer-accepted-orders:
+ *   get:
+ *     summary: Retrieve all customer-accepted orders for a Sales Executive
+ *     tags:
+ *       - Sales-Executive
+ *     description: Retrieves a list of all active orders accepted by customers for the authenticated Sales Executive. The orders returned have either no SAP reference number or an empty one, and are approved by both planning and accounts departments.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Successfully retrieved customer-accepted orders
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     format: uuid
+ *                     example: "fe6d0842-c6b3-4304-969c-277c3b8e8c6d"
+ *                   customerId:
+ *                     type: string
+ *                     format: uuid
+ *                     example: "c1a4d2e5-3b6f-4e8d-9f12-3456abcdef78"
+ *                   productId:
+ *                     type: string
+ *                     format: uuid
+ *                     example: "d2b4e3f6-4c7g-5h9i-0j1k-4567ghijklmn"
+ *                   quantity:
+ *                     type: number
+ *                     example: 100
+ *                   shipping_Address:
+ *                     type: string
+ *                     example: "123 Main St, Cityville"
+ *                   billing_Address:
+ *                     type: string
+ *                     example: "456 Side St, Townsville"
+ *                   reason:
+ *                     type: string
+ *                     example: "Standard order"
+ *                   discount:
+ *                     type: number
+ *                     example: 10.5
+ *                   remarks:
+ *                     type: string
+ *                     example: "Urgent delivery required"
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2024-04-25T10:20:30Z"
+ *                   updatedAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2024-04-26T11:25:35Z"
+ *                   deadLine:
+ *                     type: string
+ *                     format: date
+ *                     example: "2024-10-12"
+ *                   advanceAmount:
+ *                     type: number
+ *                     example: 5000
+ *                   payment_terms:
+ *                     type: string
+ *                     format: uuid
+ *                     example: "2abfc2e9-3ae6-4e59-8dcd-4ff397dae474"
+ *                   approved_by_sales:
+ *                     type: boolean
+ *                     example: true
+ *                   approved_by_accounts:
+ *                     type: boolean
+ *                     example: true
+ *                   approved_by_planning:
+ *                     type: boolean
+ *                     example: true
+ *                   approved_by_customer:
+ *                     type: boolean
+ *                     example: true
+ *                   approved_by_stores:
+ *                     type: boolean
+ *                     example: true
+ *                   order_status:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     example: ["Pending", "Confirmed"]
+ *                   product_status:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     example: ["In Production", "Dispatched"]
+ *                   isActive:
+ *                     type: boolean
+ *                     example: true
+ *                   price:
+ *                     type: number
+ *                     example: 900000
+ *                   data:
+ *                     type: string
+ *                     example: "Additional data info"
+ *                   diameter:
+ *                     type: string
+ *                     example: "100m"
+ *                   current:
+ *                     type: string
+ *                     example: "100v"
+ *                   headSize:
+ *                     type: number
+ *                     example: 100
+ *                   motorType:
+ *                     type: string
+ *                     example: "AC"
+ *                   pannelType:
+ *                     type: string
+ *                     example: "Long"
+ *                   spd:
+ *                     type: string
+ *                     example: "Yes"
+ *                   transportation:
+ *                     type: string
+ *                     example: "Included"
+ *                   warranty:
+ *                     type: string
+ *                     example: "2 years"
+ *                   sap_reference_number:
+ *                     type: string
+ *                     example: ""
+ *                   lineItems:
+ *                     type: array
+ *                     items:
+ *                       $ref: '#/components/schemas/LineItem'
+ *       '400':
+ *         description: Bad Request - Invalid request parameters or authentication
+ *       '401':
+ *         description: Unauthorized - Authentication failed or missing
+ *       '404':
+ *         description: Not Found - No orders found for the Sales Executive
+ *       '500':
+ *         description: Internal Server Error - Failed to retrieve orders
+ */
+
 route.get(
   "/get-customer-accepted-orders",
   ensureSalesExecutive,
@@ -888,6 +1036,68 @@ route.get(
     }
   }
 );
+
+/**
+ * @swagger
+ * /add-sap-refernece-number:
+ *   patch:
+ *     summary: Add SAP reference number to an order
+ *     tags:
+ *       - Sales-Executive
+ *     description: Adds a SAP reference number to an existing order. The order must be approved by sales and should not already have a SAP reference number. Additionally, the order must be active and not closed by the sales team.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - orderId
+ *               - sap_reference_number
+ *             properties:
+ *               orderId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: The unique identifier of the order to update
+ *                 example: "fe6d0842-c6b3-4304-969c-277c3b8e8c6d"
+ *               sap_reference_number:
+ *                 type: string
+ *                 description: The SAP reference number to add to the order
+ *                 example: "SAP20250107001"
+ *     responses:
+ *       '200':
+ *         description: SAP reference number successfully added to the order
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "successfully sap number added"
+ *       '400':
+ *         description: Bad Request - Invalid input data or order not eligible for SAP reference number addition
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '401':
+ *         description: Unauthorized - Authentication failed or missing
+ *       '404':
+ *         description: Not Found - Order not found or already has a SAP reference number
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '500':
+ *         description: Internal Server Error - Failed to add SAP reference number
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 
 route.patch(
   "/add-sap-refernece-number",
