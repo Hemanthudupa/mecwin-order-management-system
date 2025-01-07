@@ -239,6 +239,9 @@ export async function createUser(data: any, transaction: Transaction) {
           {
             email: userData.email,
           },
+          {
+            phoneNumber: userData.phoneNumber,
+          },
         ],
       },
     });
@@ -248,7 +251,12 @@ export async function createUser(data: any, transaction: Transaction) {
         " DUPLICATE PROPERTIES"
       );
     }
+
+    console.log(userData, " is the user data ");
+
     const user = await User.create(userData, { transaction });
+    console.log(user, " is the user data  1");
+
     return { message: " user created successfully ", user };
   } catch (error) {
     throw new APIError((error as APIError).message, (error as APIError).code);

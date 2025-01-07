@@ -47,9 +47,6 @@ User.init(
     },
     password: {
       type: DataTypes.STRING,
-      validate: {
-        len: [8, 12],
-      },
     },
     userRole: {
       type: DataTypes.UUID,
