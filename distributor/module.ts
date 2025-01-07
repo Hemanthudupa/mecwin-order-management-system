@@ -8,7 +8,11 @@ import { Distributor } from "./model";
 import { orderDetails as oDetails } from "./validation";
 import { SalesExce_Order_Relation } from "../executives/sales-exe-orders-relation-model";
 import { tranform } from "../utils/transfroms";
-import { order_status, sales_negotiation_status } from "../utils/constants";
+import {
+  order_status,
+  product_status,
+  sales_negotiation_status,
+} from "../utils/constants";
 
 export async function addProductsToCart(
   productId: any,
@@ -185,6 +189,8 @@ export async function placeCartOrders(
           })
         )?.dataValues.price! * ele.quantity;
       orderTemp.order_status = [order_status.submitted];
+      orderTemp.product_status = [product_status.to_be_processed];
+
       orders.push(orderTemp);
     }
 
@@ -250,19 +256,34 @@ export async function acceptNegotiatedOrder(orderId: string) {
       );
     order.sales_negotiation_status = sales_negotiation_status.negotiated;
     order.approved_by_customer = true;
+    let orderStatus = [...order.order_status];
+    let productStatus = [...order.product_status];
 
+    if (
+      orderStatus[orderStatus.length - 1] == "Acceptance Rejected" &&
+      productStatus[productStatus.length - 1] == "Acceptance Rejected"
+    ) {
+      orderStatus.splice(-1, 1);
+      productStatus.splice(-1, 1);
+      console.log(" last element is removed ");
+    }
+    orderStatus.push(order_status.OrderConfirmed);
+    productStatus.push(product_status.OrderConfirmed);
+    order.set("order_status", orderStatus);
+
+    order.set("product_status", productStatus);
     await order.save({ transaction });
-    const salesOrd = await SalesExce_Order_Relation.findOne({
-      where: {
-        orderId,
-      },
-      transaction,
-    });
-    if (!salesOrd) throw new APIError(" invalid order id ", " INVALID ID ");
+    // const salesOrd = await SalesExce_Order_Relation.findOne({
+    //   where: {
+    //     orderId,
+    //   },
+    //   transaction,
+    // });
+    // if (!salesOrd) throw new APIError(" invalid order id ", " INVALID ID ");
 
-    salesOrd.isActive = false;
+    // // salesOrd.isActive = false;
 
-    await salesOrd.save({ transaction });
+    // await salesOrd.save({ transaction });
     await transaction.commit();
     return {
       message: " customer happy with the negotiated money ",
@@ -313,6 +334,15 @@ export async function rejectNegotiatedOrder(id: string) {
     order.set("sales_negotiation_status", sales_negotiation_status.rejected);
     order.set("approved_by_planning", false);
     order.set("deadLine", null as any);
+    let orderStatus = [...order.order_status];
+    orderStatus.push(order_status.acceptanceRejected);
+
+    let productStatus = [...order.product_status];
+    productStatus.push(product_status.acceptanceRejected);
+
+    order.set("product_status", productStatus);
+
+    order.set("order_status", orderStatus);
     await order.save();
     return {
       message: " negotiated  order rejected successfully by customer ",

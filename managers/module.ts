@@ -14,7 +14,11 @@ import {
 } from "./validation";
 import { object } from "joi";
 import { StoresExe_Order_Relation } from "../executives/stores-exe-orders-relation-model";
-import { order_status, sales_negotiation_status } from "../utils/constants";
+import {
+  order_status,
+  product_status,
+  sales_negotiation_status,
+} from "../utils/constants";
 import sequelize from "../database";
 
 export async function getOrdersSales(
@@ -111,12 +115,30 @@ export async function assignSalesExecutive(
       },
       { transaction }
     );
-    order.order_status = new Array(
-      ...order.order_status,
-      order_status.inProgress
-    );
+    // if (order.order_status.includes("") && order.order_status[0] == "") {
+    //   let orderStatus = [];
+    //   orderStatus.push(order_status.inProgress);
+    //   order.order_status = orderStatus;
+    //   let productStatus = [];
+    //   productStatus.push(product_status.assigned);
+    //   order.product_status = productStatus;
+    // } else {
+    let orderStatus = [...order.order_status];
+    orderStatus.push(order_status.inProgress);
+    console.log(orderStatus);
 
-    const orders = await order.save({ logging: console.log });
+    let productStatus = [...order.product_status];
+
+    productStatus.push(product_status.assigned);
+    console.log(productStatus);
+
+    order.set("order_status", orderStatus);
+    order.set("product_status", productStatus);
+
+    console.log(order.dataValues);
+    // }
+
+    const orders = await order.save({ logging: console.log, transaction });
     console.log(orders, " is the orders  ");
     await transaction.commit();
     return {

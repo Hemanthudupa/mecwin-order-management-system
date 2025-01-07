@@ -139,10 +139,10 @@ export const validateLineItemsData = Joi.object({
       "string.base": " payment_terms should be valid option of string ",
       "any.required": " payment_terms  is required ",
     }),
-  sap_reference_number: Joi.string().required().messages({
-    "string.base": " sap reference is a required field ",
-    "any.required": " sap reference  is required ",
-  }),
+  // sap_reference_number: Joi.string().required().messages({
+  //   "string.base": " sap reference is a required field ",
+  //   "any.required": " sap reference  is required ",
+  // }),
   uom: Joi.string().required().messages({
     "string.base": " uom should be an proper string ",
     "any.required": " uom is requried field",

@@ -2,6 +2,8 @@ import { NextFunction, Request, Response, Router } from "express";
 import { StatusCodes } from "http-status-codes";
 import {
   addLineItems,
+  addSapReferenceNumberSales,
+  getAllCustmerAcceptedOrdersSales,
   getAllStoresExecutiveOrders,
   getCustomersRejectedOrders,
   getOrdersByDays,
@@ -866,6 +868,41 @@ route.post(
     try {
       const data = req.body;
       res.status(StatusCodes.CREATED).send(await addLineItems(data));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+route.get(
+  "/get-customer-accepted-orders",
+  ensureSalesExecutive,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { salesExcecutiveId } = (req as any).user;
+      res
+        .status(StatusCodes.OK)
+        .send(await getAllCustmerAcceptedOrdersSales(salesExcecutiveId));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+route.patch(
+  "/add-sap-refernece-number",
+  ensureSalesExecutive,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { orderId, sap_reference_number } = req.body;
+      res
+        .status(StatusCodes.OK)
+        .send(
+          await addSapReferenceNumberSales(
+            orderId as any,
+            sap_reference_number as any
+          )
+        );
     } catch (error) {
       next(error);
     }

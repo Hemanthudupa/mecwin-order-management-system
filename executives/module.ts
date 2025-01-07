@@ -13,7 +13,11 @@ import { StoresExe_Order_Relation } from "./stores-exe-orders-relation-model";
 import { UserRole } from "../roles/model";
 import { ScannedProducts } from "../scanned_products/model";
 import { Product } from "../products/model";
-import { sales_negotiation_status } from "../utils/constants";
+import {
+  order_status,
+  product_status,
+  sales_negotiation_status,
+} from "../utils/constants";
 import { LineItems } from "../line_items/model";
 
 export async function getSalesExecutiveOrders(
@@ -437,7 +441,7 @@ export async function addLineItems(data: any[]) {
   const transaction = await sequelize.transaction();
   try {
     let maxDate: any = new Date(0);
-    let sap_reference_number = data[0].sap_reference_number;
+    // let sap_reference_number = data[0].sap_reference_number;
     let payment_terms = data[0].payment_terms;
     if (Array.isArray(data) && data.length > 0) {
       for (let ele of data) {
@@ -486,8 +490,19 @@ export async function addLineItems(data: any[]) {
       order!.sales_negotiation_status =
         sales_negotiation_status.pending_acceptance;
       order!.approved_by_sales = true;
-      order!.sap_reference_number = sap_reference_number;
+      let orderStatus = [...order.order_status];
+      orderStatus.push(order_status.PendingAcceptance);
+
+      order.set("order_status", orderStatus);
+
+      let productStatus: any[] = [...order.product_status];
+      productStatus.push(product_status.PendingAcceptance);
+
+      order.set("product_status", productStatus);
+      order.set("order_status", orderStatus);
+      // order!.sap_reference_number = sap_reference_number;
       order!.payment_terms = payment_terms;
+
       await order?.save({ transaction });
       await transaction.commit();
       return { message: " successfully created line items " };
@@ -498,6 +513,75 @@ export async function addLineItems(data: any[]) {
         " invlaid data type "
       );
     }
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function getAllCustmerAcceptedOrdersSales(salesExeId: string) {
+  try {
+    return await SalesExce_Order_Relation.findAll({
+      where: { salesExecutivesId: salesExeId, isActive: true },
+      include: {
+        model: Order,
+        as: "orders",
+        where: {
+          sap_reference_number: {
+            [Op.or]: [
+              {
+                [Op.is]: null as any,
+              },
+              "",
+            ],
+          },
+          approved_by_planning: true,
+          approved_by_accounts: true,
+        },
+      },
+    });
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function addSapReferenceNumberSales(
+  id: string,
+  sap_reference_number: string
+) {
+  try {
+    const order = await Order.findOne({
+      where: {
+        id,
+        approved_by_sales: true,
+        sap_reference_number: {
+          [Op.or]: [{ [Op.is]: null as any }, ""],
+        },
+      },
+    });
+    if (!order) {
+      throw new APIError(
+        " invlaid order id or sap reference  number already added by sales executive ",
+        " INVALID ID "
+      );
+    }
+    const salesOrder = await SalesExce_Order_Relation.findOne({
+      where: {
+        orderId: id,
+        isActive: true,
+      },
+    });
+    if (!salesOrder)
+      throw new APIError(
+        " order already closed by sales team ",
+        " ORDER CLOSED "
+      );
+
+    order.set("sap_reference_number", sap_reference_number);
+    salesOrder.isActive = true;
+    await order.save();
+    return {
+      message: "successfully  sap number added",
+    };
   } catch (error) {
     throw new APIError((error as APIError).message, (error as APIError).code);
   }
