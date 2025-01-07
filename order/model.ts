@@ -1,5 +1,8 @@
 import {
+  ARRAY,
+  BOOLEAN,
   CreationOptional,
+  DataTypes,
   DATE,
   DOUBLE,
   ForeignKey,
@@ -15,6 +18,8 @@ import { Distributor } from "../distributor/model";
 import { Product } from "../products/model";
 import sequelize from "../database";
 import { Executive } from "../executives/model";
+import { AdvanceAmt } from "../advance_amt/model";
+import { LineItems } from "../line_items/model";
 
 export class Order extends Model<
   InferAttributes<Order>,
@@ -29,9 +34,34 @@ export class Order extends Model<
   declare reason: CreationOptional<string>;
   declare discount: CreationOptional<number>;
   declare remarks: CreationOptional<string>;
-  declare salesExecutive: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  declare deadLine: CreationOptional<Date>;
+  declare advanceAmount: CreationOptional<boolean>;
+  declare payment_terms: CreationOptional<string>;
+  declare approved_by_sales: CreationOptional<boolean>;
+  declare approved_by_accounts: CreationOptional<boolean>;
+  declare approved_by_planning: CreationOptional<boolean>;
+  declare approved_by_customer: CreationOptional<boolean>;
+  declare approved_by_stores: CreationOptional<boolean>;
+
+  declare order_status: CreationOptional<string[]>;
+  declare product_status: CreationOptional<string[]>;
+  declare isActive: CreationOptional<boolean>;
+  declare price: CreationOptional<number>;
+
+  declare headSize: CreationOptional<number>;
+  declare motorType: CreationOptional<string>;
+  declare current: CreationOptional<string>;
+  declare diameter: CreationOptional<string>;
+  declare pannelType: CreationOptional<string>;
+  declare spd: CreationOptional<string>;
+  declare data: CreationOptional<string>;
+  declare warranty: CreationOptional<string>;
+  declare transportation: CreationOptional<string>;
+  declare sales_negotiation_status: CreationOptional<string>;
+  declare stores_status: CreationOptional<string>;
+  declare sap_reference_number: CreationOptional<string>;
 }
 
 Order.init(
@@ -66,6 +96,9 @@ Order.init(
     updatedAt: {
       type: DATE,
     },
+    sap_reference_number: {
+      type: STRING,
+    },
     shipping_Address: {
       type: STRING,
     },
@@ -75,20 +108,88 @@ Order.init(
     reason: {
       type: STRING,
     },
+    sales_negotiation_status: {
+      type: STRING,
+    },
+    stores_status: {
+      type: STRING,
+    },
     discount: {
       type: DOUBLE,
     },
     remarks: {
       type: STRING,
     },
-    salesExecutive: {
+    advanceAmount: {
+      type: BOOLEAN,
+    },
+    approved_by_accounts: {
+      type: BOOLEAN,
+    },
+    approved_by_customer: {
+      type: BOOLEAN,
+    },
+    approved_by_planning: {
+      type: BOOLEAN,
+    },
+    approved_by_sales: {
+      type: BOOLEAN,
+    },
+    approved_by_stores: {
+      type: BOOLEAN,
+    },
+    deadLine: {
+      type: DataTypes.DATE,
+    },
+    isActive: {
+      type: BOOLEAN,
+      defaultValue: true,
+    },
+    order_status: {
+      type: ARRAY(STRING),
+    },
+    payment_terms: {
       type: UUID,
       references: {
-        model: Executive,
+        model: AdvanceAmt,
         key: "id",
       },
     },
+    product_status: {
+      type: ARRAY(STRING),
+    },
+    price: {
+      type: DOUBLE,
+    },
+    data: {
+      type: STRING,
+    },
+    diameter: {
+      type: STRING,
+    },
+    current: {
+      type: STRING,
+    },
+    headSize: {
+      type: NUMBER,
+    },
+    motorType: {
+      type: STRING,
+    },
+    pannelType: {
+      type: STRING,
+    },
+    spd: {
+      type: STRING,
+    },
+    transportation: {
+      type: STRING,
+    },
+    warranty: {
+      type: STRING,
+    },
   },
+
   {
     sequelize: sequelize,
     modelName: "orders",
@@ -96,3 +197,16 @@ Order.init(
     timestamps: true,
   }
 );
+
+Order.belongsTo(Distributor, {
+  foreignKey: "customerId",
+  as: "customers",
+});
+Order.belongsTo(Product, {
+  foreignKey: "productId",
+  as: "products",
+});
+
+Order.hasMany(LineItems, { foreignKey: "orderId", as: "order_Id" });
+
+LineItems.belongsTo(Order);

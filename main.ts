@@ -3,8 +3,10 @@ import { app } from "./app";
 import { runSeedUsers } from "./utils/authentication";
 connectToDataBase().then((res) => {
   if (res) {
-    app.listen(process.env.DB_PORT, () => {
-      console.log("server is running on the port ", process.env.DB_PORT);
+    console.log(process.env.PORT, " is the port ");
+
+    app.listen(process.env.PORT, () => {
+      console.log("server is running on the port ", process.env.PORT);
     });
     runSeedUsers();
   } else {

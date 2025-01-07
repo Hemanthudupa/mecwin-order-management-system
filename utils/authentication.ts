@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import { User } from "../user/model";
 import csv from "csvtojson";
 import { compare, hash } from "bcrypt";
@@ -51,7 +51,6 @@ export async function runSeedUsers() {
             },
             attributes: ["id"],
           });
-
           if (!userRole) {
             throw new APIError(
               "user role is not valid ",
@@ -99,6 +98,19 @@ export async function comparePassword(
 
 export function generateJWTToken(user: User) {
   try {
+    console.log(
+      {
+        id: user.id,
+        userName: user.userName,
+        email: user.email,
+        userRole: user.userRole,
+        phoneNumber: user.phoneNumber,
+      },
+      process.env.JWT_SECRET_KEY!,
+      {
+        expiresIn: process.env.JWT_EXPIRATION_TIME! || "7" + "d",
+      }
+    );
     return sign(
       {
         id: user.id,
@@ -109,17 +121,19 @@ export function generateJWTToken(user: User) {
       },
       process.env.JWT_SECRET_KEY!,
       {
-        expiresIn: process.env.JWT_EXPIRATION_TIME! + "d",
+        expiresIn: process.env.JWT_EXPIRATION_TIME! || "7" + "d",
       }
     );
   } catch (error) {
     throw new APIError((error as APIError).message, (error as APIError).code);
   }
 }
-import { NextFunction, Request, Response } from "express";
-import { USER_ROLES } from "./constants";
+import { NextFunction, raw, Request, Response } from "express";
+import { MANAGERS_ROLES, USER_ROLES } from "./constants";
 import { UserRole } from "../roles/model";
 import { Distributor } from "../distributor/model";
+import { Manager } from "../managers/model";
+import { Executive } from "../executives/model";
 
 export async function ensureUser(
   req: Request,
@@ -127,36 +141,57 @@ export async function ensureUser(
   next: NextFunction
 ) {
   try {
+    // console.log("ensure user middleware");
+    if (req.url == "/admin/add-user-role") {
+      next();
+      return;
+    }
+
     if (!req.headers.authorization) {
       throw new APIError("JWT token required ");
     }
+
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
       throw new APIError("invalid JWT token ");
     }
+
+    // console.log("hiMecwin@007123", process.env.JWT_SECRET_KEY);
+
     const payload: any = verify(token, process.env.JWT_SECRET_KEY!);
 
-    const { userRole }: any = await UserRole.findOne({
+    // console.log("came 1000");
+    const user = await UserRole.findOne({
       where: {
         id: payload.userRole,
       },
       attributes: ["userRole"],
     });
-    payload.userRole = userRole;
+    if (!user) {
+      throw new APIError(
+        " invlaid JWT token , JWT token is from invlaid user ",
+        " USER DOESNOT NOT EXIST!!!"
+      );
+    }
+
+    payload.userRole = user!.userRole;
     (req as any).user = payload;
     next();
+    return;
   } catch (error) {
     next(error);
   }
 }
-export async function ensureAdmin(
+export async function ensureSystemAdmin(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
   try {
+    console.log("came to admin validation ");
     const user = (req as any).user;
-    if (user.userRole == USER_ROLES.admin) {
+    if (user.userRole == USER_ROLES.systemAdmin) {
+      console.log("got it correct ");
       next();
     } else {
       throw new APIError(
@@ -174,15 +209,205 @@ export async function ensureDistributor(
   next: NextFunction
 ) {
   try {
+    // console.log((req as any).user);
     const { userRole, id } = (req as any).user;
-    if (userRole.toUpperCase() == "DISTRIBUTOR") {
+    if (userRole.toUpperCase() == "DISTRIBUTOR" && id) {
       const dist = await Distributor.findOne({ where: { userId: id } });
+
+      if (!dist) {
+        throw new APIError(
+          " invalid distributor  ID --- Distributor not registerd maybe  ,  ",
+          " INVLAID DISTRIBUTOR ID "
+        );
+      }
+
       (req as any).user.distributorId = dist!.id;
+      // console.log("passed ensure ditributor middle ware successfully ");
       next();
     } else {
       throw new APIError(
         " only distributor can perform this action ",
         " INVALID ROLE "
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function ensureSalesExecutive(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const user = (req as any).user;
+
+    const managers = await Manager.findAll({
+      where: {
+        department: MANAGERS_ROLES.sales,
+      },
+      attributes: ["id"],
+    });
+    console.log(user.id, " is the user id ", managers);
+    const salesExcecutive = await Executive.findOne({
+      where: {
+        userId: user.id,
+        managerId: { [Op.in]: managers.map((ele) => ele.id) },
+      },
+    });
+
+    console.log({ [Op.in]: managers.map((ele) => ele.id) });
+
+    if (!salesExcecutive) {
+      throw new APIError("invlaid sales excecutive ", " INVALID ID ");
+    }
+    (req as any).user.salesExcecutiveId = salesExcecutive.id;
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function ensureSalesManager(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const user: any = (req as any).user;
+
+    const userRole = await UserRole.findOne({
+      where: {
+        userRole: "SALES MANAGER",
+      },
+    });
+    if (!userRole) {
+      throw new APIError(" invalid user role ", " INVALID ROLE ");
+    }
+
+    const manager = await Manager.findOne({
+      where: {
+        userId: user.id,
+      },
+      include: {
+        model: User,
+        as: "user",
+        where: {
+          userRole: userRole!.id,
+        },
+      },
+    });
+
+    if (manager) {
+      (req as any).user.managerId = manager.id;
+      (req as any).user.work_locations = manager.work_locations;
+      next();
+    } else {
+      throw new APIError(
+        " only manager can perform this action ",
+        " INVALID USER ROLE "
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function ensureStoresManager(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const user = (req as any).user;
+    if (user.userRole == "STORES MANAGER") {
+      const manager = await Manager.findOne({
+        where: { userId: user.id },
+      });
+      if (!manager) {
+        next(new APIError(" manager doesnot exist ", "INVALID MANAGER ID "));
+      }
+      (req as any).user.managerId = manager!.id;
+      next();
+    } else {
+      next(
+        new APIError(
+          "only stores manager can perform this action ",
+          "INVALID USER ROLE "
+        )
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function ensureStoresExecutive(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const user = (req as any).user;
+
+    if (user.userRole == "STORES EXECUTIVE") {
+      const executive = await Executive.findOne({
+        where: {
+          userId: user.id,
+        },
+        raw: true,
+      });
+      (req as any).user.executiveId = executive!.id;
+      next();
+    } else {
+      throw new APIError(
+        " only stores executives can perform this action ",
+        " INVALID USER ROLE "
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function ensureAccounts(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { userRole, id } = (req as any).user;
+    if (userRole == "ACCOUNTS") {
+      const accId = await Manager.findOne({ where: { userId: id }, raw: true });
+      (req as any).accountsId = accId!.id;
+      next();
+    } else {
+      throw new APIError(
+        " only accounts team can perform this action ",
+        " INVLAID ROLE "
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function ensurePlanning(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { userRole, id } = (req as any).user;
+    if (userRole == "PLANNING") {
+      const accId = await Manager.findOne({ where: { userId: id }, raw: true });
+      (req as any).accountsId = accId!.id;
+      next();
+    } else {
+      throw new APIError(
+        " only planning team can perform this action ",
+        " INVLAID ROLE "
       );
     }
   } catch (error) {

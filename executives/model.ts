@@ -20,7 +20,7 @@ export class Executive extends Model<
   declare id: CreationOptional<string>;
   declare managerId: ForeignKey<Manager>;
   declare location: CreationOptional<string>;
-  declare userId: ForeignKey<Manager>;
+  declare userId: ForeignKey<User>;
   declare userName: CreationOptional<string>;
   declare employeeId: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
@@ -73,3 +73,9 @@ Executive.init(
     timestamps: true,
   }
 );
+
+Executive.belongsTo(User, {
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+Executive.belongsTo(Manager);

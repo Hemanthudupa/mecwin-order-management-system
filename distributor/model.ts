@@ -34,13 +34,18 @@ export class Distributor extends Model<
 
   declare shipping_Address: CreationOptional<string>;
 
-  declare city: CreationOptional<string>;
+  declare shipping_Address_city: CreationOptional<string>;
 
-  declare state: CreationOptional<string>;
+  declare shipping_Address_state: CreationOptional<string>;
 
-  declare pincode: CreationOptional<string>;
+  declare shipping_Address_pincode: CreationOptional<string>;
 
   declare billing_Address: CreationOptional<string>;
+  declare billing_Address_city: CreationOptional<string>;
+
+  declare billing_Address_state: CreationOptional<string>;
+
+  declare billing_Address_pincode: CreationOptional<string>;
 
   declare additional_remarks: CreationOptional<string>;
 
@@ -93,16 +98,26 @@ Distributor.init(
     shipping_Address: {
       type: DataTypes.STRING,
     },
-    city: {
+    shipping_Address_city: {
       type: DataTypes.STRING,
     },
-    state: {
+    shipping_Address_state: {
       type: DataTypes.STRING,
     },
-    pincode: {
+    shipping_Address_pincode: {
       type: DataTypes.STRING,
     },
     billing_Address: {
+      type: DataTypes.STRING,
+    },
+
+    billing_Address_city: {
+      type: DataTypes.STRING,
+    },
+    billing_Address_state: {
+      type: DataTypes.STRING,
+    },
+    billing_Address_pincode: {
       type: DataTypes.STRING,
     },
     additional_remarks: {

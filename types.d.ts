@@ -15,13 +15,19 @@ export type distributor = {
 
   shipping_Address: string;
 
-  city: string;
+  shipping_Address_city: string;
 
-  state: string;
+  shipping_Address_state: string;
 
-  pincode: string;
+  shipping_Address_pincode: string;
 
   billing_Address: string;
+
+  billing_Address_city: string;
+
+  billing_Address_state: string;
+
+  billing_Address_pincode: string;
 
   additional_remarks: string;
   attachments: string;

@@ -41,6 +41,9 @@ User.init(
     email: {
       type: DataTypes.STRING,
       unique: true,
+      validate: {
+        isEmail: true,
+      },
     },
     password: {
       type: DataTypes.STRING,
@@ -70,3 +73,10 @@ User.init(
     sequelize: sequelize,
   }
 );
+
+User.belongsTo(UserRole, {
+  foreignKey: "userRole",
+  as: "roleId",
+  onUpdate: "CASCADE",
+  onDelete: "CASCADE",
+});

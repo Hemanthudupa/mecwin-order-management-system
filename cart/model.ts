@@ -63,3 +63,8 @@ Cart.init(
     timestamps: true,
   }
 );
+
+Cart.belongsTo(Product, {
+  foreignKey: "productId",
+  as: "products",
+});

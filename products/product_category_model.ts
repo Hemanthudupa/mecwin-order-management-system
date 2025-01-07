@@ -17,6 +17,8 @@ export class Product_Categoary extends Model<
 > {
   declare id: CreationOptional<string>;
   declare categoary_type: CreationOptional<string>;
+  declare product_categoray_images: CreationOptional<string>;
+  declare product_categoray_name: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -37,13 +39,20 @@ Product_Categoary.init(
         },
       },
     },
+    product_categoray_name: {
+      type: STRING,
+    },
     createdAt: {
       type: DATE,
     },
     updatedAt: {
       type: DATE,
     },
+    product_categoray_images: {
+      type: STRING,
+    },
   },
+
   {
     sequelize,
     modelName: "product_categoary",

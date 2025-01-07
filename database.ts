@@ -1,18 +1,29 @@
 import { Op, Sequelize } from "sequelize";
 import { SequelizeStorage, Umzug } from "umzug";
-const sequelize = new Sequelize({
+
+console.log({
   database: process.env.DB_NAME,
   username: process.env.DB_USER,
   password: process.env.DB_PASS,
   host: process.env.DB_HOST,
+});
+const database = process.env.DB_NAME;
+const username = process.env.DB_USER;
+const password = process.env.DB_PASS;
+const host = process.env.DB_HOST;
+const sequelize = new Sequelize({
+  database,
+  username,
+  password,
+  host,
   dialect: "postgres",
   pool: {
     max: 5,
     min: 0,
     idle: 10000,
   },
-  port: 5432,
   logging: false,
+  port: 5433,
 });
 
 export async function connectToDataBase() {
@@ -31,7 +42,7 @@ export async function connectToDataBase() {
 export async function runAllMigrationFiles() {
   try {
     const umzug = new Umzug({
-      logger: console,
+      logger: undefined,
       context: sequelize,
       storage: new SequelizeStorage({
         sequelize,
