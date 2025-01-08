@@ -342,7 +342,7 @@ export async function getStoresOrderById(id: string) {
         {
           model: Product,
           as: "products",
-          attributes: ["product_name"],
+          attributes: ["product_name", "description"],
         },
       ],
     });

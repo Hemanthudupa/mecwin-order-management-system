@@ -32,9 +32,13 @@ export class Product extends Model<
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare product_categoary: ForeignKey<Product_Categoary>;
+  declare description: CreationOptional<string>;
 }
 Product.init(
   {
+    description: {
+      type: STRING,
+    },
     id: {
       type: UUID,
       defaultValue: UUIDV4,
