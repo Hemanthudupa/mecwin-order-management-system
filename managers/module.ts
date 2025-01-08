@@ -317,27 +317,34 @@ export async function getStoresOrderById(id: string) {
   try {
     const order = await Order.findOne({
       where: { id },
-      include: {
-        model: Distributor,
-        as: "customers",
-        attributes: [
-          "companyName",
-          "gstNumber",
-          "panNumber",
-          "priorExperience",
-          "fullName",
-          "phoneNumber",
-          "email",
-          "shipping_Address",
-          "shipping_Address_city",
-          "shipping_Address_state",
-          "shipping_Address_pincode",
-          "billing_Address",
-          "billing_Address_city",
-          "billing_Address_state",
-          "billing_Address_pincode",
-        ],
-      },
+      include: [
+        {
+          model: Distributor,
+          as: "customers",
+          attributes: [
+            "companyName",
+            "gstNumber",
+            "panNumber",
+            "priorExperience",
+            "fullName",
+            "phoneNumber",
+            "email",
+            "shipping_Address",
+            "shipping_Address_city",
+            "shipping_Address_state",
+            "shipping_Address_pincode",
+            "billing_Address",
+            "billing_Address_city",
+            "billing_Address_state",
+            "billing_Address_pincode",
+          ],
+        },
+        {
+          model: Product,
+          as: "products",
+          attributes: ["product_name"],
+        },
+      ],
     });
     if (!order) throw new APIError("invlaid order id ", "INVALID ORDER ID");
     return order;

@@ -45,6 +45,7 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "tsc": "^2.0.4",
+    "twilio": "^5.4.0",
     "umzug": "^3.8.2",
     "yamljs": "^0.3.0"
   },

@@ -15,6 +15,7 @@ import {
 import { Product_Categoary } from "./product_category_model";
 import sequelize from "../database";
 import { Product_Sub_Categoary } from "./product_sub_categoary_model";
+import { Order } from "../order/model";
 
 export class Product extends Model<
   InferAttributes<Product>,
