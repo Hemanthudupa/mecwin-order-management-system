@@ -13,7 +13,7 @@ import { fileMulter } from "../utils/files/distributor_attachments/attachments";
 import sharp from "sharp";
 import compressPDF from "pdf-compressor";
 import { getAdvanceAmount } from "../admin/module";
-import { getStoresOrderById } from "../managers/module";
+import { getLineItemsByOrderId, getStoresOrderById } from "../managers/module";
 const app = Router();
 /**
  * @swagger
@@ -555,4 +555,17 @@ app.get(
     }
   }
 );
+
+app.get(
+  "/get-line-items/:id",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      res.status(StatusCodes.OK).send(await getLineItemsByOrderId(id));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 export default app;

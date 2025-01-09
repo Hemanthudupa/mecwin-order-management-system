@@ -1118,6 +1118,5 @@ route.patch(
     }
   }
 );
-export default route;
 
-//
+export default route;

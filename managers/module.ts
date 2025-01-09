@@ -20,6 +20,7 @@ import {
   sales_negotiation_status,
 } from "../utils/constants";
 import sequelize from "../database";
+import { LineItems } from "../line_items/model";
 
 export async function getOrdersSales(
   managerId: string,
@@ -317,6 +318,43 @@ export async function getStoresOrderById(id: string) {
   try {
     const order = await Order.findOne({
       where: { id },
+      attributes: [
+        "id",
+        "customerId",
+        "productId",
+        "quantity",
+        "shipping_Address",
+        "billing_Address",
+        "reason",
+        "discount",
+        "remarks",
+        "createdAt",
+        "updatedAt",
+        "deadLine",
+        "advanceAmount",
+        "payment_terms",
+        "approved_by_sales",
+        "approved_by_accounts",
+        "approved_by_planning",
+        "approved_by_customer",
+        "approved_by_stores",
+        "order_status",
+        "product_status",
+        "isActive",
+        ["price", "total"],
+        "headSize",
+        "motorType",
+        "current",
+        "diameter",
+        "pannelType",
+        "spd",
+        "data",
+        "warranty",
+        "transportation",
+        "sales_negotiation_status",
+        "stores_status",
+        "sap_reference_number",
+      ],
       include: [
         {
           model: Distributor,
@@ -377,17 +415,47 @@ export async function getAllStoresExecutives(managerId: string) {
 }
 
 export async function assignStoresExecutiveOrder(data: any) {
-  const validatedData = await validateAssignStoresExecutive.validateAsync(data);
-  const order = await Order.findOne({ where: { id: validatedData.orderId } });
-  if (!order) throw new APIError("invlaid order id ", "INVALID ORDER ID");
-  order.stores_status = sales_negotiation_status.assigned;
-  await order.save();
+  try {
+    const validatedData = await validateAssignStoresExecutive.validateAsync(
+      data
+    );
+    const order = await Order.findOne({ where: { id: validatedData.orderId } });
+    if (!order) throw new APIError("invlaid order id ", "INVALID ORDER ID");
+    order.stores_status = sales_negotiation_status.assigned;
+    await order.save();
 
-  console.log(validatedData);
-  const storesData = await StoresExe_Order_Relation.create(validatedData);
-  return {
-    message: " successfully stores executive assigned ",
-    storesData,
-  };
-  return { message: " successfully order assigned to the store executive " };
+    console.log(validatedData);
+    const storesData = await StoresExe_Order_Relation.create(validatedData);
+    return {
+      message: " successfully stores executive assigned ",
+      storesData,
+    };
+    return { message: " successfully order assigned to the store executive " };
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
+}
+
+export async function getLineItemsByOrderId(id: string) {
+  try {
+    const order: any = await Order.findOne({
+      where: { id },
+      attributes: ["id"],
+      include: {
+        model: Product,
+        as: "products",
+        attributes: ["description"],
+      },
+    });
+
+    if (!order) throw new APIError(" invalid order id ", " INVALID ID ");
+    const lineItems = await LineItems.findAll({ where: { orderId: order.id } });
+    return lineItems.map((ele: any) => {
+      ele.dataValues["description"] =
+        order.dataValues.products.dataValues.description;
+      return ele;
+    });
+  } catch (error) {
+    throw new APIError((error as APIError).message, (error as APIError).code);
+  }
 }

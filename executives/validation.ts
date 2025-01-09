@@ -183,11 +183,11 @@ export const validateLineItemsData = Joi.object({
     "boolean.base": " transportation should be an proper boolean ",
     "any.required": " transportation is requried field",
   }),
-  price: Joi.number().required().messages({
+  price: Joi.number().greater(0).required().messages({
     "number.base": " price should be an proper number ",
     "any.required": " price is requried field",
   }),
-  quantity: Joi.number().required().messages({
+  quantity: Joi.number().greater(0).required().messages({
     "number.base": " quantity should be an proper number ",
     "any.required": " quantity is requried field",
   }),
