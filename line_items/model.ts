@@ -24,10 +24,10 @@ export class LineItems extends Model<
   declare uom: CreationOptional<string>;
   declare price: CreationOptional<number>;
   declare headSize: CreationOptional<string>;
-  declare motor_type: CreationOptional<string>;
+  declare motorType: CreationOptional<string>;
   declare current: CreationOptional<string>;
   declare diameter: CreationOptional<string>;
-  declare pannel_type: CreationOptional<string>;
+  declare panelType: CreationOptional<string>;
   declare spd: CreationOptional<boolean>;
   declare data: CreationOptional<boolean>;
   declare warranty: CreationOptional<boolean>;
@@ -66,8 +66,8 @@ LineItems.init(
     current: { type: STRING },
     diameter: { type: STRING },
     headSize: { type: STRING },
-    motor_type: { type: STRING },
-    pannel_type: { type: STRING },
+    motorType: { type: STRING },
+    panelType: { type: STRING },
     price: { type: DOUBLE },
     quantity: { type: NUMBER },
     uom: { type: STRING },

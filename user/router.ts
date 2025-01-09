@@ -556,6 +556,113 @@ app.get(
   }
 );
 
+/**
+ * @swagger
+ * /get-line-items/{id}:
+ *   get:
+ *     summary: Get line items by order ID
+ *     tags:
+ *       - utils
+ *     description: Retrieves all line items for a specific order by its ID. Includes additional product description for each line item.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The unique identifier of the order
+ *         example: "123e4567-e89b-12d3-a456-426614174000"
+ *     responses:
+ *       '200':
+ *         description: Successfully retrieved line items
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     format: uuid
+ *                     description: The unique identifier of the line item
+ *                     example: "456e7890-a123-45c6-b789-5678e901f234"
+ *                   orderId:
+ *                     type: string
+ *                     format: uuid
+ *                     description: The unique identifier of the associated order
+ *                     example: "123e4567-e89b-12d3-a456-426614174000"
+ *                   uom:
+ *                     type: string
+ *                     description: Unit of measure for the line item
+ *                     example: "kg"
+ *                   price:
+ *                     type: number
+ *                     description: Price of the line item
+ *                     example: 1500
+ *                   headSize:
+ *                     type: string
+ *                     description: Head size of the motor
+ *                     example: "100"
+ *                   motorType:
+ *                     type: string
+ *                     description: Type of motor
+ *                     example: "AC"
+ *                   current:
+ *                     type: string
+ *                     description: Current specification
+ *                     example: "100A"
+ *                   diameter:
+ *                     type: string
+ *                     description: Diameter of the motor
+ *                     example: "10cm"
+ *                   pannel_type:
+ *                     type: string
+ *                     description: Type of panel
+ *                     example: "Solar"
+ *                   spd:
+ *                     type: boolean
+ *                     description: Indicates if SPD (Surge Protection Device) is included
+ *                     example: true
+ *                   data:
+ *                     type: boolean
+ *                     description: Indicates if additional data is included
+ *                     example: true
+ *                   warranty:
+ *                     type: boolean
+ *                     description: Indicates if warranty is provided
+ *                     example: true
+ *                   transportation:
+ *                     type: boolean
+ *                     description: Indicates if transportation is included
+ *                     example: true
+ *                   deadLine:
+ *                     type: string
+ *                     format: date
+ *                     description: Deadline for the line item
+ *                     example: "2024-12-31"
+ *                   description:
+ *                     type: string
+ *                     description: Product description associated with the line item
+ *                     example: "High-quality AC motor with advanced features"
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                     description: Timestamp when the line item was created
+ *                     example: "2024-01-01T12:00:00Z"
+ *                   updatedAt:
+ *                     type: string
+ *                     format: date-time
+ *                     description: Timestamp when the line item was last updated
+ *                     example: "2024-01-02T15:30:00Z"
+ *       '400':
+ *         description: Bad Request - Invalid or missing order ID
+ *       '404':
+ *         description: Not Found - Order ID does not exist
+ *       '500':
+ *         description: Internal Server Error - Failed to retrieve line items
+ */
 app.get(
   "/get-line-items/:id",
   async (req: Request, res: Response, next: NextFunction) => {

@@ -227,7 +227,7 @@ route.get(
  *                 type: string
  *                 description: Unit of measure
  *                 example: "order management"
- *               motor_type:
+ *               motorType:
  *                 type: string
  *                 description: Type of motor
  *                 example: "AC"
@@ -281,7 +281,7 @@ route.get(
  *               - payment_terms
  *               - sap_reference_number
  *               - uom
- *               - motor_type
+ *               - motorType
  *               - headSize
  *               - current
  *               - diameter
@@ -391,7 +391,7 @@ route.patch(
  *                         type: string
  *                         description: Head size of the motor
  *                         example: "100"
- *                       motor_type:
+ *                       motorType:
  *                         type: string
  *                         description: Type of motor
  *                         example: "AC"

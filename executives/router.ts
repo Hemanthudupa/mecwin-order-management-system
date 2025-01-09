@@ -784,7 +784,7 @@ route.get(
  *                   type: string
  *                   description: Unit of measure for the item
  *                   example: "order management"
- *                 motor_type:
+ *                 motorType:
  *                   type: string
  *                   description: Type of motor
  *                   example: "AC"

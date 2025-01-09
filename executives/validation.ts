@@ -147,9 +147,9 @@ export const validateLineItemsData = Joi.object({
     "string.base": " uom should be an proper string ",
     "any.required": " uom is requried field",
   }),
-  motor_type: Joi.string().required().messages({
-    "number.base": " motor_type should be an proper string ",
-    "any.required": " motor_type is requried field",
+  motorType: Joi.string().required().messages({
+    "number.base": " motorType should be an proper string ",
+    "any.required": " motorType is requried field",
   }),
   headSize: Joi.string().required().messages({
     "string.base": " headSize should be an proper string ",
@@ -163,7 +163,7 @@ export const validateLineItemsData = Joi.object({
     "string.base": " diameter should be an proper string ",
     "any.required": " diameter is requried field",
   }),
-  pannel_type: Joi.string().required().messages({
+  pannelType: Joi.string().required().messages({
     "string.base": " pannel_type should be an proper string ",
     "any.required": " pannel_type is requried field",
   }),
